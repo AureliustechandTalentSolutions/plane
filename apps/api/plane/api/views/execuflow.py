@@ -232,67 +232,32 @@ class MicroStepDecomposeEndpoint(BaseAPIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            # ─── LLM Integration Point ───
-            # This is the provider-agnostic decomposition interface.
-            # Replace this block with your LLM call (OpenAI, Anthropic, etc).
-            # The contract: given issue context, return a list of step dicts.
-            decomposed_steps = self._decompose_issue(
-                issue=parent_issue,
+            # ─── Queue Async Task ───
+            # Decompose issue asynchronously using Celery
+            task = decompose_issue_task.delay(
+                issue_id=str(parent_issue.id),
                 max_steps=data.get("max_steps", 5),
                 target_energy=data.get("target_energy"),
                 max_minutes_per_step=data.get("max_minutes_per_step", 15),
+                workspace_id=str(request.user.last_workspace_id),
+                user_id=str(request.user.id),
             )
 
-            # Create MicroTask records from decomposed steps
-            created_tasks = []
-            for idx, step in enumerate(decomposed_steps):
-                task = MicroTask.objects.create(
-                    title=step.get("title", f"Step {idx + 1}"),
-                    description_json={"text": step.get("description", "")},
-                    issue=parent_issue,
-                    energy_level=step.get("energy_level", "low"),
-                    estimated_minutes=step.get("estimated_minutes", 5),
-                    sort_order=idx,
-                    project_id=project_id,
-                    workspace_id=request.user.last_workspace_id,
-                    created_by=request.user,
-                    updated_by=request.user,
-                )
-                created_tasks.append(task)
-
-            serializer = MicroTaskSerializer(created_tasks, many=True)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "task_id": task.id,
+                    "status": "processing",
+                    "message": "Issue decomposition started",
+                    "issue_id": str(parent_issue.id),
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
         except Exception as e:
             log_exception(e)
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-    def _decompose_issue(
-        self,
-        issue,
-        max_steps,
-        target_energy,
-        max_minutes_per_step,
-    ):
-        """
-        Decompose an issue into micro-steps using AI.
-
-        Uses Claude Opus 4.6 (primary) with Gemini 3 Pro
-        fallback.  Returns list[dict] with title, description,
-        energy_level, estimated_minutes.
-        """
-        issue_title = issue.name or "Untitled Issue"
-        issue_desc = issue.description_stripped or issue_title
-        return decompose_issue_with_ai(
-            issue_title=issue_title,
-            issue_description=issue_desc,
-            max_steps=max_steps,
-            target_energy=target_energy,
-            max_minutes_per_step=max_minutes_per_step,
-        )
-
 
 # ──────────────────────────────────────────────────────────────
 # Brain Dump (Voice Capture)
@@ -320,32 +285,26 @@ class BrainDumpEndpoint(BaseAPIView):
             source = data.get("source", "text")
             auto_create = data.get("auto_create_issues", False)
 
-            # ─── NLP Processing Point ───
-            # Replace with actual NLP/LLM extraction.
-            extracted_items = self._extract_action_items(raw_text)
-
-            created_issues = []
-            if auto_create and extracted_items:
-                for item in extracted_items:
-                    issue = Issue.objects.create(
-                        name=item["title"],
-                        description_stripped=item.get("description", ""),
-                        project_id=project_id,
-                        workspace_id=request.user.last_workspace_id,
-                        created_by=request.user,
-                        updated_by=request.user,
-                    )
-                    created_issues.append({"id": str(issue.id), "name": issue.name})
+            # ─── Queue Async Task ───
+            # Process brain dump asynchronously using Celery
+            task = process_brain_dump_task.delay(
+                raw_text=raw_text,
+                source=source,
+                auto_create_issues=auto_create,
+                workspace_id=str(request.user.last_workspace_id),
+                project_id=project_id,
+                user_id=str(request.user.id),
+            )
 
             return Response(
                 {
+                    "task_id": task.id,
+                    "status": "processing",
+                    "message": "Brain dump processing started",
                     "raw_text": raw_text,
                     "source": source,
-                    "extracted_items": extracted_items,
-                    "created_issues": created_issues,
-                    "items_count": len(extracted_items),
                 },
-                status=status.HTTP_201_CREATED,
+                status=status.HTTP_202_ACCEPTED,
             )
         except Exception as e:
             log_exception(e)
@@ -354,15 +313,48 @@ class BrainDumpEndpoint(BaseAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def _extract_action_items(self, raw_text):
-        """
-        Extract action items from raw text using AI.
 
-        Uses Claude Opus 4.6 (primary) with Gemini 3 Pro
-        fallback.  Returns list[dict] with title, description.
-        """
-        return extract_actions_with_ai(raw_text)
 
+# ──────────────────────────────────────────────────────────────
+# Task Status Endpoint
+# ──────────────────────────────────────────────────────────────
+
+
+class ExecuFlowTaskStatusEndpoint(BaseAPIView):
+    """
+    Check the status of async ExecuFlow tasks.
+
+    Returns task state (PENDING, SUCCESS, FAILURE) and result data.
+    """
+
+    permission_classes = [ProjectEntityPermission]
+
+    def get(self, request, slug, project_id):
+        from celery.result import AsyncResult
+
+        task_id = request.query_params.get("task_id")
+        if not task_id:
+            return Response(
+                {"error": "task_id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        task_result = AsyncResult(task_id)
+
+        response_data = {
+            "task_id": task_id,
+            "status": task_result.state,
+        }
+
+        if task_result.ready():
+            if task_result.successful():
+                response_data["result"] = task_result.result
+            else:
+                response_data["error"] = str(task_result.info)
+        else:
+            response_data["message"] = "Task is still processing"
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 # ──────────────────────────────────────────────────────────────
 # FocusSession Endpoints

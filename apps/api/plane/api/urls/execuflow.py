@@ -11,6 +11,7 @@ from plane.api.views.execuflow import (
     ContextSnapshotRestoreEndpoint,
     DopamineMenuClaimEndpoint,
     DopamineMenuListEndpoint,
+    ExecuFlowTaskStatusEndpoint,
     FocusSessionDetailEndpoint,
     FocusSessionListCreateEndpoint,
     MicroStepDecomposeEndpoint,
@@ -43,6 +44,12 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/execuflow/brain-dump/",
         BrainDumpEndpoint.as_view(http_method_names=["post"]),
         name="execuflow-brain-dump",
+    ),
+    # ── Task Status ──
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/execuflow/task-status/",
+        ExecuFlowTaskStatusEndpoint.as_view(http_method_names=["get"]),
+        name="execuflow-task-status",
     ),
     # ── Focus Session ──
     path(
