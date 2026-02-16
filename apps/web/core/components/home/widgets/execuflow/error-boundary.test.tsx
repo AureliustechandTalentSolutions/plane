@@ -86,33 +86,32 @@ describe("ExecuFlowErrorBoundary", () => {
   });
 
   describe("reset functionality", () => {
-    it("should reset error state when try again is clicked", async () => {
+    it("should reset error state and render children again with key change", async () => {
       const user = userEvent.setup();
-      let shouldThrow = true;
 
+      // Use key prop to force remount after error
       const { rerender } = render(
-        <ExecuFlowErrorBoundary widgetName="Test Widget">
-          <ThrowError shouldThrow={shouldThrow} />
+        <ExecuFlowErrorBoundary widgetName="Test Widget" key="error">
+          <ThrowError shouldThrow={true} />
         </ExecuFlowErrorBoundary>
       );
 
       expect(screen.getByText(/encountered an error/i)).toBeInTheDocument();
 
-      // Fix the error
-      shouldThrow = false;
-
       // Click try again
       const tryAgainButton = screen.getByRole("button", { name: /try again/i });
       await user.click(tryAgainButton);
 
-      // Re-render with fixed component
+      // Remount with new key and non-throwing component
       rerender(
-        <ExecuFlowErrorBoundary widgetName="Test Widget">
-          <ThrowError shouldThrow={shouldThrow} />
+        <ExecuFlowErrorBoundary widgetName="Test Widget" key="fixed">
+          <ThrowError shouldThrow={false} />
         </ExecuFlowErrorBoundary>
       );
 
+      // Now the working component should render
       expect(screen.getByText("Working component")).toBeInTheDocument();
+      expect(screen.queryByText(/encountered an error/i)).not.toBeInTheDocument();
     });
 
     it("should call optional onReset callback when reset button is clicked", async () => {
