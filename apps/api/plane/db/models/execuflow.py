@@ -370,6 +370,11 @@ class DopamineMenu(ProjectBaseModel):
         elapsed = (timezone.now() - self.last_used_at).total_seconds() / 60
         return elapsed < self.cooldown_minutes
 
+    @property
+    def is_available(self):
+        """Check if reward is currently available (not on cooldown)."""
+        return not self.is_on_cooldown
+
 
 # ---------------------------------------------------------------------------
 # Achievement — milestone celebration
