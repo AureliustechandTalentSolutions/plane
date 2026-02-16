@@ -23,9 +23,11 @@ import { HomePageHeader } from "@/plane-web/components/home/header";
 // local imports
 import { StickiesWidget } from "../stickies/widget";
 import { HomeLoader, NoProjectsEmptyState, RecentActivityWidget } from "./widgets";
+import { ExecuFlowFocusWidget, ExecuFlowDragonWidget } from "./widgets/execuflow";
 import { DashboardQuickLinks } from "./widgets/links";
 import { ManageWidgetsModal } from "./widgets/manage";
 
+// eslint-disable-next-line react-refresh/only-export-components -- Widget config object required alongside components
 export const HOME_WIDGETS_LIST: {
   [key in THomeWidgetKeys]: {
     component: React.FC<THomeWidgetProps> | null;
@@ -57,6 +59,16 @@ export const HOME_WIDGETS_LIST: {
     component: null,
     fullWidth: false,
     title: "home.quick_tutorial.title",
+  },
+  execuflow_focus: {
+    component: ExecuFlowFocusWidget,
+    fullWidth: false,
+    title: "ExecuFlow Focus Timer",
+  },
+  execuflow_dragon: {
+    component: ExecuFlowDragonWidget,
+    fullWidth: false,
+    title: "ExecuFlow Energy Tracker",
   },
 };
 
