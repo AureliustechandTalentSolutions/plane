@@ -6,3 +6,4 @@
 
 export * from "./focus-widget";
 export * from "./dragon-widget";
+export * from "./error-boundary";
