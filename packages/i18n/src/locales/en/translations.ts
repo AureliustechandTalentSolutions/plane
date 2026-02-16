@@ -2754,4 +2754,45 @@ export default {
     stickies: "Stickies",
     your_work: "Your work",
   },
+  // ExecuFlow widgets
+  execuflow: {
+    focus_timer: {
+      title: "Focus Timer",
+      sessions_today: "{{count}} session today",
+      sessions_today_plural: "{{count}} sessions today",
+      micro_focus: "Micro focus",
+      short_session: "Short session",
+      flow_session: "Flow session",
+      deep_work: "Deep work",
+      pause: "Pause",
+      resume: "Resume",
+      reset: "Reset",
+      new_session: "New Session",
+      session_complete: "Focus session complete! Take a break.",
+    },
+    energy_tracker: {
+      title: "Energy Tracker",
+      depleted: "Depleted",
+      low_energy: "Low Energy",
+      steady: "Steady",
+      powered_up: "Powered Up",
+      dragon_mode: "Dragon Mode 🐉",
+      ai_suggestions: "AI Suggestions",
+      tips: {
+        depleted: ["Take a 10-minute walk outside", "Drink water and have a snack", "Switch to easy admin tasks"],
+        low: ["Try a 5-minute micro-focus session", "Review and organize your backlog", "Respond to quick messages"],
+        medium: [
+          "Good time for code review or writing",
+          "Tackle that medium-priority issue",
+          "Pair program with a teammate",
+        ],
+        high: ["Perfect for deep feature work", "Write that complex algorithm", "Tackle your most challenging issue"],
+        dragon: [
+          "🔥 You're unstoppable — go for the hardest task",
+          "Architecture and design decisions NOW",
+          "This energy won't last — use it wisely",
+        ],
+      },
+    },
+  },
 } as const;

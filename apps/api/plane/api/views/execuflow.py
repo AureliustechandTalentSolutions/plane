@@ -29,6 +29,7 @@ from plane.api.serializers.execuflow import (
 )
 
 # ExecuFlow AI providers
+from plane.api.throttles import AIBurstThrottle, AIEndpointThrottle
 from plane.api.views.ai_providers import decompose_issue_with_ai, extract_actions_with_ai
 from plane.app.permissions import ProjectEntityPermission
 from plane.db.models import (
@@ -209,6 +210,7 @@ class MicroStepDecomposeEndpoint(BaseAPIView):
     """
 
     permission_classes = [ProjectEntityPermission]
+    throttle_classes = [AIEndpointThrottle, AIBurstThrottle]
 
     def post(self, request, slug, project_id):
         try:
@@ -273,6 +275,7 @@ class BrainDumpEndpoint(BaseAPIView):
     """
 
     permission_classes = [ProjectEntityPermission]
+    throttle_classes = [AIEndpointThrottle, AIBurstThrottle]
 
     def post(self, request, slug, project_id):
         try:
