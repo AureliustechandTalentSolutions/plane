@@ -4,14 +4,24 @@
 
 # Python imports
 import logging
+import uuid
 
 # Django imports
+from django.core.cache import cache
 from django.utils import timezone
 
 # Third party imports
+from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    inline_serializer,
+)
 
 from plane.api.serializers.execuflow import (
     AchievementSerializer,
@@ -29,8 +39,8 @@ from plane.api.serializers.execuflow import (
 )
 
 # ExecuFlow AI providers
-from plane.api.throttles import AIBurstThrottle, AIEndpointThrottle
-from plane.api.views.ai_providers import decompose_issue_with_ai, extract_actions_with_ai
+from plane.api.throttles import AIBurstThrottle, AIEndpointThrottle, TaskStatusThrottle
+from plane.services.ai import decompose_issue_with_ai, extract_actions_with_ai
 from plane.bgtasks.execuflow_tasks import decompose_issue_task, process_brain_dump_task
 from plane.app.permissions import ProjectEntityPermission
 from plane.db.models import (
@@ -44,11 +54,81 @@ from plane.db.models import (
     UserAchievement,
 )
 from plane.utils.exception_logger import log_exception
+from plane.utils.execuflow_cache import get_cache_key, get_cache_timeout, invalidate_user_cache
 
 # Module imports
 from .base import BaseAPIView
 
 logger = logging.getLogger("plane.api")
+
+# Task ownership cache timeout (1 hour, matching typical Celery result expiry)
+TASK_OWNER_CACHE_TIMEOUT = 3600
+
+# ──────────────────────────────────────────────────────────────
+# Common OpenAPI Parameters & Inline Serializers
+# ──────────────────────────────────────────────────────────────
+
+EXECUFLOW_PATH_PARAMS = [
+    OpenApiParameter(
+        name="slug",
+        type=str,
+        location=OpenApiParameter.PATH,
+        description="Workspace slug.",
+    ),
+    OpenApiParameter(
+        name="project_id",
+        type={"type": "string", "format": "uuid"},
+        location=OpenApiParameter.PATH,
+        description="Project UUID.",
+    ),
+]
+
+EXECUFLOW_DETAIL_PATH_PARAMS = EXECUFLOW_PATH_PARAMS + [
+    OpenApiParameter(
+        name="pk",
+        type={"type": "string", "format": "uuid"},
+        location=OpenApiParameter.PATH,
+        description="Resource UUID.",
+    ),
+]
+
+ERROR_RESPONSE = inline_serializer(
+    name="ErrorResponse",
+    fields={"error": drf_serializers.CharField()},
+)
+
+ASYNC_TASK_RESPONSE = inline_serializer(
+    name="AsyncTaskAccepted",
+    fields={
+        "task_id": drf_serializers.CharField(),
+        "status": drf_serializers.CharField(),
+        "message": drf_serializers.CharField(),
+    },
+)
+
+
+def _is_valid_uuid(value):
+    """Validate that a string is a well-formed UUID."""
+    try:
+        uuid.UUID(str(value))
+        return True
+    except (ValueError, AttributeError):
+        return False
+
+
+def _store_task_ownership(task_id, user_id):
+    """Record which user owns a Celery task in the cache."""
+    cache.set(f"execuflow_task_owner:{task_id}", str(user_id), timeout=TASK_OWNER_CACHE_TIMEOUT)
+
+
+def _verify_task_ownership(task_id, user_id):
+    """Check whether the given user owns the specified task. Returns True if owned or if no ownership record exists (graceful fallback)."""
+    owner_id = cache.get(f"execuflow_task_owner:{task_id}")
+    if owner_id is None:
+        # No ownership record -- task may predate this feature.
+        # Deny by default to prevent enumeration.
+        return False
+    return owner_id == str(user_id)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -246,6 +326,9 @@ class MicroStepDecomposeEndpoint(BaseAPIView):
                 user_id=str(request.user.id),
             )
 
+            # Record task ownership for status endpoint authorization
+            _store_task_ownership(task.id, request.user.id)
+
             return Response(
                 {
                     "task_id": task.id,
@@ -299,6 +382,9 @@ class BrainDumpEndpoint(BaseAPIView):
                 project_id=project_id,
                 user_id=str(request.user.id),
             )
+
+            # Record task ownership for status endpoint authorization
+            _store_task_ownership(task.id, request.user.id)
 
             return Response(
                 {
@@ -580,6 +666,11 @@ class DopamineMenuListEndpoint(BaseAPIView):
 
     def get(self, request, slug, project_id):
         try:
+            cache_key = get_cache_key("dopamine_menu", str(request.user.id))
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return Response(cached)
+
             rewards = DopamineMenu.objects.filter(
                 workspace__slug=slug,
                 project_id=project_id,
@@ -594,7 +685,10 @@ class DopamineMenuListEndpoint(BaseAPIView):
             paginator = ExecuFlowPagination()
             paginated_queryset = paginator.paginate_queryset(rewards, request)
             serializer = DopamineMenuSerializer(paginated_queryset, many=True)
-            return paginator.get_paginated_response(serializer.data)
+            response = paginator.get_paginated_response(serializer.data)
+
+            cache.set(cache_key, response.data, timeout=get_cache_timeout())
+            return response
         except Exception as e:
             log_exception(e)
             return Response(
@@ -632,6 +726,8 @@ class DopamineMenuClaimEndpoint(BaseAPIView):
             reward.use_count = (reward.use_count or 0) + 1
             reward.save()
 
+            invalidate_user_cache("dopamine_menu", str(request.user.id))
+
             serializer = DopamineMenuSerializer(reward)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except DopamineMenu.DoesNotExist:
@@ -654,6 +750,11 @@ class AchievementListEndpoint(BaseAPIView):
 
     def get(self, request, slug, project_id):
         try:
+            cache_key = get_cache_key("achievements", str(request.user.id))
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return Response(cached)
+
             achievements = Achievement.objects.filter(
                 workspace__slug=slug,
                 project_id=project_id,
@@ -663,7 +764,10 @@ class AchievementListEndpoint(BaseAPIView):
             paginator = ExecuFlowPagination()
             paginated_queryset = paginator.paginate_queryset(achievements, request)
             serializer = AchievementSerializer(paginated_queryset, many=True)
-            return paginator.get_paginated_response(serializer.data)
+            response = paginator.get_paginated_response(serializer.data)
+
+            cache.set(cache_key, response.data, timeout=get_cache_timeout())
+            return response
         except Exception as e:
             log_exception(e)
             return Response(

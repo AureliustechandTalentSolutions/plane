@@ -100,3 +100,15 @@ class AIBurstThrottle(UserRateThrottle):
             request.META["X-RateLimit-Burst-Reset"] = reset_time
 
         return allowed
+
+
+class TaskStatusThrottle(UserRateThrottle):
+    """
+    Rate limit for task status polling - 30 requests per minute per user.
+
+    Prevents abuse of the status endpoint via rapid polling or
+    task ID enumeration attacks.
+    """
+
+    scope = "task_status"
+    rate = os.environ.get("TASK_STATUS_RATE_LIMIT", "30/minute")

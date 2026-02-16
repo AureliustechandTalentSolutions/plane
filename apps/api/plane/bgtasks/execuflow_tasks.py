@@ -11,7 +11,7 @@ asynchronously for ExecuFlow features:
   - Brain dump text extraction into action items
 
 Uses the dual-provider architecture (Claude Opus 4.6 + Gemini 3 Pro)
-defined in plane.api.views.ai_providers.
+defined in plane.services.ai.providers.
 """
 
 import logging
@@ -20,7 +20,7 @@ from typing import Any, Dict
 from celery import shared_task
 from django.db import transaction
 
-from plane.api.views.ai_providers import (
+from plane.services.ai import (
     decompose_issue_with_ai,
     extract_actions_with_ai,
 )
