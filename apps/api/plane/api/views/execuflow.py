@@ -10,6 +10,7 @@ from django.utils import timezone
 
 # Third party imports
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from plane.api.serializers.execuflow import (
@@ -46,6 +47,19 @@ from plane.utils.exception_logger import log_exception
 from .base import BaseAPIView
 
 logger = logging.getLogger("plane.api")
+
+
+# ──────────────────────────────────────────────────────────────
+# ExecuFlow Pagination
+# ──────────────────────────────────────────────────────────────
+
+
+class ExecuFlowPagination(PageNumberPagination):
+    """Pagination class for ExecuFlow list endpoints."""
+
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 # ──────────────────────────────────────────────────────────────
@@ -87,8 +101,11 @@ class MicroTaskListCreateEndpoint(BaseAPIView):
             if issue:
                 queryset = queryset.filter(issue_id=issue)
 
-            serializer = MicroTaskSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Paginate results
+            paginator = ExecuFlowPagination()
+            paginated_queryset = paginator.paginate_queryset(queryset, request)
+            serializer = MicroTaskSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             log_exception(e)
             return Response(
@@ -380,8 +397,11 @@ class FocusSessionListCreateEndpoint(BaseAPIView):
                 else:
                     queryset = queryset.filter(ended_at__isnull=False)
 
-            serializer = FocusSessionSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Paginate results
+            paginator = ExecuFlowPagination()
+            paginated_queryset = paginator.paginate_queryset(queryset, request)
+            serializer = FocusSessionSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             log_exception(e)
             return Response(
@@ -483,10 +503,13 @@ class ContextSnapshotListCreateEndpoint(BaseAPIView):
                 workspace__slug=slug,
                 project_id=project_id,
                 created_by=request.user,
-            ).order_by("-created_at")[:20]
+            ).order_by("-created_at")
 
-            serializer = ContextSnapshotSerializer(snapshots, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Paginate results
+            paginator = ExecuFlowPagination()
+            paginated_queryset = paginator.paginate_queryset(snapshots, request)
+            serializer = ContextSnapshotSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             log_exception(e)
             return Response(
@@ -571,8 +594,11 @@ class DopamineMenuListEndpoint(BaseAPIView):
             if category:
                 rewards = rewards.filter(category=category)
 
-            serializer = DopamineMenuSerializer(rewards, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Paginate results
+            paginator = ExecuFlowPagination()
+            paginated_queryset = paginator.paginate_queryset(rewards, request)
+            serializer = DopamineMenuSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             log_exception(e)
             return Response(
@@ -637,8 +663,11 @@ class AchievementListEndpoint(BaseAPIView):
                 project_id=project_id,
             ).order_by("name")
 
-            serializer = AchievementSerializer(achievements, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Paginate results
+            paginator = ExecuFlowPagination()
+            paginated_queryset = paginator.paginate_queryset(achievements, request)
+            serializer = AchievementSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             log_exception(e)
             return Response(
@@ -665,8 +694,11 @@ class UserAchievementListEndpoint(BaseAPIView):
                 .order_by("-earned_at")
             )
 
-            serializer = UserAchievementSerializer(earned, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Paginate results
+            paginator = ExecuFlowPagination()
+            paginated_queryset = paginator.paginate_queryset(earned, request)
+            serializer = UserAchievementSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             log_exception(e)
             return Response(
@@ -697,8 +729,11 @@ class StreakEndpoint(BaseAPIView):
                 created_by=request.user,
             ).order_by("streak_type")
 
-            serializer = StreakSerializer(streaks, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            # Paginate results
+            paginator = ExecuFlowPagination()
+            paginated_queryset = paginator.paginate_queryset(streaks, request)
+            serializer = StreakSerializer(paginated_queryset, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             log_exception(e)
             return Response(

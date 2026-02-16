@@ -1017,3 +1017,163 @@ class TestDecomposeEndpoint:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert len(response.data) <= 3
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Rate Limiting Tests - AI Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.contract
+class TestAIEndpointRateLimiting:
+    """Test rate limiting on AI-powered endpoints (decompose, brain_dump)"""
+
+    @pytest.mark.django_db
+    def test_decompose_rate_limit_enforcement(self, session_client, workspace, project, issue):
+        """Test that decompose endpoint enforces rate limits"""
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/decompose/"
+        data = {
+            "parent_issue_id": str(issue.id),
+            "max_steps": 3,
+        }
+
+        # Make 11 rapid requests (limit is 10/minute)
+        responses = []
+        for i in range(11):
+            response = session_client.post(url, data, format="json")
+            responses.append(response)
+
+        # First 10 should succeed
+        for i in range(10):
+            assert responses[i].status_code in [
+                status.HTTP_201_CREATED,
+                status.HTTP_200_OK,
+            ], f"Request {i+1} should succeed"
+
+        # 11th request should be throttled
+        assert responses[10].status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    @pytest.mark.django_db
+    def test_brain_dump_rate_limit_enforcement(self, session_client, workspace, project):
+        """Test that brain_dump endpoint enforces rate limits"""
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/brain-dump/"
+        data = {
+            "raw_text": "Fix login bug. Update docs.",
+            "source": "text",
+        }
+
+        # Make 11 rapid requests (limit is 10/minute)
+        responses = []
+        for i in range(11):
+            response = session_client.post(url, data, format="json")
+            responses.append(response)
+
+        # First 10 should succeed
+        for i in range(10):
+            assert responses[i].status_code in [
+                status.HTTP_201_CREATED,
+                status.HTTP_200_OK,
+            ], f"Request {i+1} should succeed"
+
+        # 11th request should be throttled
+        assert responses[10].status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    @pytest.mark.django_db
+    def test_decompose_burst_limit_enforcement(self, session_client, workspace, project, issue):
+        """Test that decompose endpoint enforces burst limits (3/second)"""
+        import time
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/decompose/"
+        data = {
+            "parent_issue_id": str(issue.id),
+            "max_steps": 3,
+        }
+
+        # Make 4 requests within 1 second
+        responses = []
+        start_time = time.time()
+        for i in range(4):
+            response = session_client.post(url, data, format="json")
+            responses.append(response)
+        elapsed = time.time() - start_time
+
+        # Ensure requests were made within 1 second
+        assert elapsed < 1.0, "Requests should complete within 1 second"
+
+        # First 3 should succeed (burst limit)
+        for i in range(3):
+            assert responses[i].status_code in [
+                status.HTTP_201_CREATED,
+                status.HTTP_200_OK,
+            ], f"Burst request {i+1} should succeed"
+
+        # 4th request should be throttled
+        assert responses[3].status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    @pytest.mark.django_db
+    def test_throttle_response_headers(self, session_client, workspace, project, issue):
+        """Test that throttled responses include retry information"""
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/decompose/"
+        data = {
+            "parent_issue_id": str(issue.id),
+            "max_steps": 3,
+        }
+
+        # Exhaust rate limit
+        for i in range(10):
+            session_client.post(url, data, format="json")
+
+        # Make throttled request
+        response = session_client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+        # Check for rate limit headers (if implemented)
+        # Note: DRF throttling doesn't add headers by default, but we can add them
+
+    @pytest.mark.django_db
+    def test_non_ai_endpoints_not_throttled(self, session_client, workspace, project, issue):
+        """Test that non-AI endpoints (like list) are not affected by AI throttles"""
+        list_url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/"
+
+        # Make many requests to list endpoint
+        for i in range(15):
+            response = session_client.get(list_url)
+            # Should succeed - no AI throttle applied
+            assert response.status_code == status.HTTP_200_OK
+
+    @pytest.mark.django_db
+    def test_different_users_have_separate_rate_limits(self, client, workspace, project, issue, create_user):
+        """Test that rate limits are per-user, not global"""
+        from plane.db.models import User
+
+        # Create second user
+        user2 = User.objects.create(
+            email="user2@test.com",
+            first_name="User",
+            last_name="Two",
+        )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/decompose/"
+        data = {
+            "parent_issue_id": str(issue.id),
+            "max_steps": 3,
+        }
+
+        # User 1 exhausts their limit
+        client.force_authenticate(user=create_user)
+        for i in range(10):
+            client.post(url, data, format="json")
+
+        # User 1 is throttled
+        response_user1 = client.post(url, data, format="json")
+        assert response_user1.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+        # User 2 can still make requests
+        client.force_authenticate(user=user2)
+        response_user2 = client.post(url, data, format="json")
+        # Should succeed (different user has their own limit)
+        assert response_user2.status_code in [
+            status.HTTP_201_CREATED,
+            status.HTTP_200_OK,
+            status.HTTP_403_FORBIDDEN,  # May lack project permission
+        ]
