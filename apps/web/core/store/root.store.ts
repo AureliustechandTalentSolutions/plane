@@ -29,6 +29,8 @@ import type { IDashboardStore } from "./dashboard.store";
 import { DashboardStore } from "./dashboard.store";
 import type { IEditorAssetStore } from "./editor/asset.store";
 import { EditorAssetStore } from "./editor/asset.store";
+import type { IExecuFlowStore } from "./execuflow.store";
+import { ExecuFlowStore } from "./execuflow.store";
 import type { IProjectEstimateStore } from "./estimates/project-estimate.store";
 import { ProjectEstimateStore } from "./estimates/project-estimate.store";
 import type { IFavoriteStore } from "./favorite.store";
@@ -101,6 +103,7 @@ export class CoreRootStore {
   editorAssetStore: IEditorAssetStore;
   workItemFilters: IWorkItemFilterStore;
   powerK: IPowerKStore;
+  execuFlow: IExecuFlowStore;
 
   constructor() {
     this.router = new RouterStore();
@@ -132,6 +135,7 @@ export class CoreRootStore {
     this.analytics = new AnalyticsStore();
     this.workItemFilters = new WorkItemFilterStore();
     this.powerK = new PowerKStore();
+    this.execuFlow = new ExecuFlowStore(this);
   }
 
   resetOnSignOut() {
@@ -165,5 +169,6 @@ export class CoreRootStore {
     this.editorAssetStore = new EditorAssetStore();
     this.workItemFilters = new WorkItemFilterStore();
     this.powerK = new PowerKStore();
+    this.execuFlow = new ExecuFlowStore(this);
   }
 }
