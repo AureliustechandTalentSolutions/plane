@@ -6,11 +6,12 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import { Flame, ChevronRight, Brain, Sparkles } from "lucide-react";
 // plane imports
 import type { THomeWidgetProps } from "@plane/types";
+import { useTranslation } from "@plane/i18n";
 
 type TEnergyLevel = "depleted" | "low" | "medium" | "high" | "dragon";
 
@@ -22,15 +23,8 @@ const ENERGY_COLORS: Record<TEnergyLevel, string> = {
   dragon: "text-amber-500",
 };
 
-const ENERGY_LABELS: Record<TEnergyLevel, string> = {
-  depleted: "Depleted",
-  low: "Low Energy",
-  medium: "Steady",
-  high: "Powered Up",
-  dragon: "Dragon Mode 🐉",
-};
-
 export const ExecuFlowDragonWidget = observer(function ExecuFlowDragonWidget(_props: THomeWidgetProps) {
+  const { t } = useTranslation();
   const [energy, setEnergy] = useState<TEnergyLevel>("medium");
   const [showTips, setShowTips] = useState(false);
 
@@ -42,21 +36,27 @@ export const ExecuFlowDragonWidget = observer(function ExecuFlowDragonWidget(_pr
     dragon: 100,
   };
 
-  const tips: Record<TEnergyLevel, string[]> = {
-    depleted: ["Take a 10-minute walk outside", "Drink water and have a snack", "Switch to easy admin tasks"],
-    low: ["Try a 5-minute micro-focus session", "Review and organize your backlog", "Respond to quick messages"],
-    medium: [
-      "Good time for code review or writing",
-      "Tackle that medium-priority issue",
-      "Pair program with a teammate",
-    ],
-    high: ["Perfect for deep feature work", "Write that complex algorithm", "Tackle your most challenging issue"],
-    dragon: [
-      "🔥 You're unstoppable — go for the hardest task",
-      "Architecture and design decisions NOW",
-      "This energy won't last — use it wisely",
-    ],
-  };
+  const energyLabels: Record<TEnergyLevel, string> = useMemo(
+    () => ({
+      depleted: t("execuflow.energy_tracker.depleted"),
+      low: t("execuflow.energy_tracker.low_energy"),
+      medium: t("execuflow.energy_tracker.steady"),
+      high: t("execuflow.energy_tracker.powered_up"),
+      dragon: t("execuflow.energy_tracker.dragon_mode"),
+    }),
+    [t]
+  );
+
+  const tips: Record<TEnergyLevel, string[]> = useMemo(
+    () => ({
+      depleted: t("execuflow.energy_tracker.tips.depleted") as unknown as string[],
+      low: t("execuflow.energy_tracker.tips.low") as unknown as string[],
+      medium: t("execuflow.energy_tracker.tips.medium") as unknown as string[],
+      high: t("execuflow.energy_tracker.tips.high") as unknown as string[],
+      dragon: t("execuflow.energy_tracker.tips.dragon") as unknown as string[],
+    }),
+    [t]
+  );
 
   const handleEnergySelect = useCallback((level: TEnergyLevel) => {
     setEnergy(level);
@@ -68,9 +68,9 @@ export const ExecuFlowDragonWidget = observer(function ExecuFlowDragonWidget(_pr
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Flame className={`h-4 w-4 ${ENERGY_COLORS[energy]}`} />
-          <h3 className="text-14 font-medium text-primary">Energy Tracker</h3>
+          <h3 className="text-14 font-medium text-primary">{t("execuflow.energy_tracker.title")}</h3>
         </div>
-        <span className={`text-12 font-medium ${ENERGY_COLORS[energy]}`}>{ENERGY_LABELS[energy]}</span>
+        <span className={`text-12 font-medium ${ENERGY_COLORS[energy]}`}>{energyLabels[energy]}</span>
       </div>
 
       {/* Energy bar */}
@@ -123,7 +123,7 @@ export const ExecuFlowDragonWidget = observer(function ExecuFlowDragonWidget(_pr
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 mb-2">
             <Brain className="h-3.5 w-3.5 text-purple-400" />
-            <span className="text-12 font-medium text-secondary">AI Suggestions</span>
+            <span className="text-12 font-medium text-secondary">{t("execuflow.energy_tracker.ai_suggestions")}</span>
             <Sparkles className="h-3 w-3 text-purple-400" />
           </div>
           {tips[energy].map((tip, i) => (

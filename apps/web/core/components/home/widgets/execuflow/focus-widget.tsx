@@ -11,8 +11,9 @@ import { observer } from "mobx-react";
 import { Play, Pause, RotateCcw, Zap } from "lucide-react";
 // plane imports
 import type { THomeWidgetProps } from "@plane/types";
-import { useExecuFlow  } from "./use-execuflow";
-import type {TSessionType} from "./use-execuflow";
+import { useTranslation } from "@plane/i18n";
+import { useExecuFlow } from "./use-execuflow";
+import type { TSessionType } from "./use-execuflow";
 
 const FOCUS_DURATIONS: Record<TSessionType, number> = {
   micro: 5 * 60, // 5 min
@@ -25,6 +26,7 @@ type TFocusState = "idle" | "working" | "break" | "paused";
 
 export const ExecuFlowFocusWidget = observer(function ExecuFlowFocusWidget(props: THomeWidgetProps) {
   const { workspaceSlug } = props;
+  const { t } = useTranslation();
 
   const { activeSession, completedToday, startSession, pauseSession, resumeSession, endSession, updateSecondsLeft } =
     useExecuFlow({ workspaceSlug });
@@ -75,10 +77,12 @@ export const ExecuFlowFocusWidget = observer(function ExecuFlowFocusWidget(props
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-amber-500" />
-          <h3 className="text-14 font-medium text-primary">Focus Timer</h3>
+          <h3 className="text-14 font-medium text-primary">{t("execuflow.focus_timer.title")}</h3>
         </div>
         <span className="text-12 text-tertiary">
-          {completedToday} session{completedToday !== 1 ? "s" : ""} today
+          {completedToday === 1
+            ? t("execuflow.focus_timer.sessions_today", { count: completedToday })
+            : t("execuflow.focus_timer.sessions_today_plural", { count: completedToday })}
         </span>
       </div>
 
@@ -131,12 +135,12 @@ export const ExecuFlowFocusWidget = observer(function ExecuFlowFocusWidget(props
         {focusState !== "idle" && (
           <div className="text-12 text-tertiary">
             {selectedDuration === "micro"
-              ? "Micro focus"
+              ? t("execuflow.focus_timer.micro_focus")
               : selectedDuration === "short"
-                ? "Short session"
+                ? t("execuflow.focus_timer.short_session")
                 : selectedDuration === "flow"
-                  ? "Flow session"
-                  : "Deep work"}
+                  ? t("execuflow.focus_timer.flow_session")
+                  : t("execuflow.focus_timer.deep_work")}
           </div>
         )}
 
@@ -147,7 +151,7 @@ export const ExecuFlowFocusWidget = observer(function ExecuFlowFocusWidget(props
               onClick={handlePause}
               className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-surface-3 text-secondary text-13 font-medium hover:text-primary transition-colors"
             >
-              <Pause className="h-3.5 w-3.5" /> Pause
+              <Pause className="h-3.5 w-3.5" /> {t("execuflow.focus_timer.pause")}
             </button>
           )}
           {focusState === "paused" && (
@@ -156,13 +160,13 @@ export const ExecuFlowFocusWidget = observer(function ExecuFlowFocusWidget(props
                 onClick={handleResume}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-amber-500 text-white text-13 font-medium hover:bg-amber-600 transition-colors"
               >
-                <Play className="h-3.5 w-3.5" /> Resume
+                <Play className="h-3.5 w-3.5" /> {t("execuflow.focus_timer.resume")}
               </button>
               <button
                 onClick={handleReset}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-surface-3 text-secondary text-13 font-medium hover:text-primary transition-colors"
               >
-                <RotateCcw className="h-3.5 w-3.5" /> Reset
+                <RotateCcw className="h-3.5 w-3.5" /> {t("execuflow.focus_timer.reset")}
               </button>
             </>
           )}
@@ -171,13 +175,15 @@ export const ExecuFlowFocusWidget = observer(function ExecuFlowFocusWidget(props
               onClick={handleReset}
               className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-green-500 text-white text-13 font-medium hover:bg-green-600 transition-colors"
             >
-              <RotateCcw className="h-3.5 w-3.5" /> New Session
+              <RotateCcw className="h-3.5 w-3.5" /> {t("execuflow.focus_timer.new_session")}
             </button>
           )}
         </div>
 
         {focusState === "break" && (
-          <p className="text-13 text-green-500 font-medium animate-pulse">Focus session complete! Take a break.</p>
+          <p className="text-13 text-green-500 font-medium animate-pulse">
+            {t("execuflow.focus_timer.session_complete")}
+          </p>
         )}
       </div>
     </div>
