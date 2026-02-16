@@ -709,6 +709,258 @@ class TestBrainDumpEndpoint:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Pagination Tests
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.contract
+class TestExecuFlowPaginationEndpoints:
+    """Test pagination for all ExecuFlow list endpoints"""
+
+    @pytest.mark.django_db
+    def test_micro_tasks_default_pagination(self, session_client, workspace, project, issue, create_user):
+        """Test micro-tasks list returns paginated response with default page size"""
+        # Create 25 micro-tasks to exceed default page size (20)
+        for i in range(25):
+            MicroTask.objects.create(
+                title=f"Task {i}",
+                description_json={"text": f"Description {i}"},
+                issue=issue,
+                energy_level="low",
+                estimated_minutes=5,
+                sort_order=i,
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert "count" in response.data
+        assert "next" in response.data
+        assert "previous" in response.data
+        assert response.data["count"] == 25
+        assert len(response.data["results"]) == 20  # Default page size
+
+    @pytest.mark.django_db
+    def test_micro_tasks_custom_page_size(self, session_client, workspace, project, issue, create_user):
+        """Test micro-tasks list with custom page_size parameter"""
+        for i in range(15):
+            MicroTask.objects.create(
+                title=f"Task {i}",
+                description_json={"text": f"Description {i}"},
+                issue=issue,
+                energy_level="low",
+                estimated_minutes=5,
+                sort_order=i,
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/?page_size=5"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 5
+
+    @pytest.mark.django_db
+    def test_micro_tasks_max_page_size_limit(self, session_client, workspace, project, issue, create_user):
+        """Test micro-tasks list enforces max page_size of 100"""
+        for i in range(150):
+            MicroTask.objects.create(
+                title=f"Task {i}",
+                description_json={"text": f"Description {i}"},
+                issue=issue,
+                energy_level="low",
+                estimated_minutes=5,
+                sort_order=i,
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/?page_size=200"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) <= 100  # Max page size enforced
+
+    @pytest.mark.django_db
+    def test_micro_tasks_page_navigation(self, session_client, workspace, project, issue, create_user):
+        """Test micro-tasks pagination with next/previous page navigation"""
+        for i in range(30):
+            MicroTask.objects.create(
+                title=f"Task {i}",
+                description_json={"text": f"Description {i}"},
+                issue=issue,
+                energy_level="low",
+                estimated_minutes=5,
+                sort_order=i,
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        # Page 1
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["next"] is not None
+        assert response.data["previous"] is None
+
+        # Page 2
+        url_page2 = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/micro-tasks/?page=2"
+        response_page2 = session_client.get(url_page2)
+
+        assert response_page2.status_code == status.HTTP_200_OK
+        assert response_page2.data["previous"] is not None
+        assert len(response_page2.data["results"]) == 10  # Remaining items
+
+    @pytest.mark.django_db
+    def test_focus_sessions_pagination(self, session_client, workspace, project, create_user):
+        """Test focus sessions list returns paginated response"""
+        for i in range(25):
+            FocusSession.objects.create(
+                session_type="pomodoro",
+                planned_duration_minutes=25,
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/focus-sessions/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert response.data["count"] == 25
+        assert len(response.data["results"]) == 20
+
+    @pytest.mark.django_db
+    def test_context_snapshots_pagination(self, session_client, workspace, project, create_user):
+        """Test context snapshots list returns paginated response"""
+        for i in range(25):
+            ContextSnapshot.objects.create(
+                title=f"Snapshot {i}",
+                snapshot_data={"test": i},
+                trigger="manual",
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/context-snapshots/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert response.data["count"] == 25
+        assert len(response.data["results"]) == 20
+
+    @pytest.mark.django_db
+    def test_dopamine_menu_pagination(self, session_client, workspace, project, create_user):
+        """Test dopamine menu list returns paginated response"""
+        for i in range(25):
+            DopamineMenu.objects.create(
+                category="appetizer",
+                title=f"Reward {i}",
+                description=f"Description {i}",
+                cooldown_minutes=30,
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/dopamine-menu/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert response.data["count"] == 25
+        assert len(response.data["results"]) == 20
+
+    @pytest.mark.django_db
+    def test_achievements_pagination(self, session_client, workspace, project):
+        """Test achievements list returns paginated response"""
+        for i in range(25):
+            Achievement.objects.create(
+                name=f"Achievement {i}",
+                description=f"Description {i}",
+                icon="star",
+                xp_value=10,
+                criteria_json={"tasks": 1},
+                workspace=workspace,
+                project=project,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/achievements/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert response.data["count"] == 25
+        assert len(response.data["results"]) == 20
+
+    @pytest.mark.django_db
+    def test_user_achievements_pagination(self, session_client, workspace, project, create_user):
+        """Test user achievements (mine) list returns paginated response"""
+        # Create achievements and grant them to user
+        for i in range(25):
+            achievement = Achievement.objects.create(
+                name=f"Achievement {i}",
+                description=f"Description {i}",
+                icon="star",
+                xp_value=10,
+                criteria_json={"tasks": 1},
+                workspace=workspace,
+                project=project,
+            )
+            UserAchievement.objects.create(
+                achievement=achievement,
+                user=create_user,
+                workspace=workspace,
+                project=project,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/achievements/mine/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert response.data["count"] == 25
+        assert len(response.data["results"]) == 20
+
+    @pytest.mark.django_db
+    def test_streaks_pagination(self, session_client, workspace, project, create_user):
+        """Test streaks list returns paginated response"""
+        streak_types = ["daily_login", "weekly_tasks", "focus_session", "micro_task_completion", "achievement_earned"]
+        for i in range(25):
+            Streak.objects.create(
+                streak_type=streak_types[i % len(streak_types)],
+                current_count=i,
+                longest_count=i * 2,
+                grace_period_hours=24,
+                status="active",
+                workspace=workspace,
+                project=project,
+                user=create_user,
+            )
+
+        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/streaks/"
+        response = session_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "results" in response.data
+        assert response.data["count"] == 25
+        assert len(response.data["results"]) == 20
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Decompose Tests
 # ─────────────────────────────────────────────────────────────────────────────
 
