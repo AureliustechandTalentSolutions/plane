@@ -9,6 +9,9 @@
     "build": "react-router build",
     "preview": "react-router build && serve -s build/client -l 3000",
     "start": "serve -s build/client -l 3000",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf .react-router && rm -rf node_modules && rm -rf dist && rm -rf build",
     "check:lint": "eslint . --cache --cache-location node_modules/.cache/eslint/ --max-warnings=14367",
     "check:types": "react-router typegen && tsc --noEmit",
@@ -80,13 +83,20 @@
     "@plane/typescript-config": "workspace:*",
     "@react-router/dev": "catalog:",
     "@tailwindcss/typography": "0.5.19",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/lodash-es": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-color": "^3.0.6",
     "@types/react-dom": "catalog:",
+    "@vitest/coverage-v8": "^4.0.8",
+    "@vitest/ui": "^4.0.8",
+    "jsdom": "^25.0.1",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.8"
   }
 }
