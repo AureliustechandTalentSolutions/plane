@@ -94,6 +94,21 @@ export interface IBrainDumpResponse {
   items_count: number;
 }
 
+// Async task response for AI-powered endpoints
+export interface IAsyncTaskResponse {
+  task_id: string;
+  status: "processing" | "pending";
+  message: string;
+}
+
+// Task status response from polling endpoint
+export interface ITaskStatusResponse<T = unknown> {
+  task_id: string;
+  status: "PENDING" | "STARTED" | "SUCCESS" | "FAILURE" | "RETRY";
+  result?: T;
+  error?: string;
+}
+
 // Helper to extract data from response
 function extractData<T>(res: AxiosResponse<T>): T {
   return res.data;
@@ -150,6 +165,10 @@ export class ExecuFlowService extends APIService {
       .catch((err: AxiosError<unknown>) => handleError(err));
   }
 
+  /**
+   * Start async decomposition of an issue into micro-tasks.
+   * Returns a task_id for polling - use pollTaskStatus to get results.
+   */
   async decomposeMicroSteps(
     workspaceSlug: string,
     projectId: string,
@@ -159,14 +178,18 @@ export class ExecuFlowService extends APIService {
       target_energy?: string;
       max_minutes_per_step?: number;
     }
-  ): Promise<IMicroTask[]> {
+  ): Promise<IAsyncTaskResponse> {
     return this.post(`${this.basePath(workspaceSlug, projectId)}/micro-tasks/decompose/`, data)
-      .then((res: AxiosResponse<IMicroTask[]>) => extractData(res))
+      .then((res: AxiosResponse<IAsyncTaskResponse>) => extractData(res))
       .catch((err: AxiosError<unknown>) => handleError(err));
   }
 
   // ── Brain Dump ──
 
+  /**
+   * Start async brain dump processing.
+   * Returns a task_id for polling - use pollTaskStatus to get results.
+   */
   async brainDump(
     workspaceSlug: string,
     projectId: string,
@@ -175,10 +198,53 @@ export class ExecuFlowService extends APIService {
       source?: string;
       auto_create_issues?: boolean;
     }
-  ): Promise<IBrainDumpResponse> {
+  ): Promise<IAsyncTaskResponse> {
     return this.post(`${this.basePath(workspaceSlug, projectId)}/brain-dump/`, data)
-      .then((res: AxiosResponse<IBrainDumpResponse>) => extractData(res))
+      .then((res: AxiosResponse<IAsyncTaskResponse>) => extractData(res))
       .catch((err: AxiosError<unknown>) => handleError(err));
+  }
+
+  /**
+   * Poll for async task status and results.
+   * Call repeatedly until status is SUCCESS or FAILURE.
+   */
+  async pollTaskStatus<T = unknown>(
+    workspaceSlug: string,
+    projectId: string,
+    taskId: string
+  ): Promise<ITaskStatusResponse<T>> {
+    return this.get(`${this.basePath(workspaceSlug, projectId)}/task-status/?task_id=${taskId}`)
+      .then((res: AxiosResponse<ITaskStatusResponse<T>>) => extractData(res))
+      .catch((err: AxiosError<unknown>) => handleError(err));
+  }
+
+  /**
+   * Helper to wait for async task completion with polling.
+   * Polls every intervalMs until task completes or maxAttempts reached.
+   */
+  async waitForTaskCompletion<T = unknown>(
+    workspaceSlug: string,
+    projectId: string,
+    taskId: string,
+    intervalMs = 1000,
+    maxAttempts = 60
+  ): Promise<T> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const status = await this.pollTaskStatus<T>(workspaceSlug, projectId, taskId);
+
+      if (status.status === "SUCCESS" && status.result !== undefined) {
+        return status.result;
+      }
+
+      if (status.status === "FAILURE") {
+        throw new Error(status.error || "Task failed");
+      }
+
+      // Wait before next poll
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+
+    throw new Error("Task polling timeout");
   }
 
   // ── Focus Sessions ──

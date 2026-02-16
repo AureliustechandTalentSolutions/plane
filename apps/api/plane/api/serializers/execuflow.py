@@ -143,10 +143,8 @@ class FocusSessionSerializer(BaseSerializer):
         ]
 
     def get_actual_duration_minutes(self, obj):
-        duration = obj.actual_duration
-        if duration is not None:
-            return round(duration.total_seconds() / 60, 1)
-        return None
+        """Return the actual duration in minutes, computed on session end."""
+        return obj.actual_duration_minutes
 
 
 class FocusSessionCreateSerializer(BaseSerializer):

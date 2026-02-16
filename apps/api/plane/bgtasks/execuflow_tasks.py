@@ -15,26 +15,35 @@ defined in plane.api.views.ai_providers.
 """
 
 import logging
+from typing import Any, Dict
 
 from celery import shared_task
 from django.db import transaction
 
-from plane.api.views.ai_providers import decompose_issue_with_ai, extract_actions_with_ai
+from plane.api.views.ai_providers import (
+    decompose_issue_with_ai,
+    extract_actions_with_ai,
+)
 from plane.db.models import Issue, MicroTask, Project, User
 
 logger = logging.getLogger(__name__)
 
+# Task configuration constants
+MAX_RETRIES = 3
+RETRY_DELAY_SECONDS = 60
+MAX_BRAIN_DUMP_ITEMS = 10
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+
+@shared_task(bind=True, max_retries=MAX_RETRIES, default_retry_delay=RETRY_DELAY_SECONDS)
 def decompose_issue_task(
     self,
-    issue_id,
-    max_steps,
-    target_energy,
-    max_minutes_per_step,
-    workspace_id,
-    user_id,
-):
+    issue_id: str,
+    max_steps: int,
+    target_energy: str,
+    max_minutes_per_step: int,
+    workspace_id: str,
+    user_id: str,
+) -> Dict[str, Any]:
     """
     Async task to decompose an issue into micro-tasks using AI.
 
@@ -140,16 +149,16 @@ def decompose_issue_task(
         }
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+@shared_task(bind=True, max_retries=MAX_RETRIES, default_retry_delay=RETRY_DELAY_SECONDS)
 def process_brain_dump_task(
     self,
-    raw_text,
-    source,
-    auto_create_issues,
-    workspace_id,
-    project_id,
-    user_id,
-):
+    raw_text: str,
+    source: str,
+    auto_create_issues: bool,
+    workspace_id: str,
+    project_id: str,
+    user_id: str,
+) -> Dict[str, Any]:
     """
     Async task to process brain dump text using AI.
 
@@ -206,8 +215,8 @@ def process_brain_dump_task(
 
         # Create issues if auto_create is enabled
         if auto_create_issues and extracted_items:
-            # Limit to first 10 items to prevent spam
-            items_to_create = extracted_items[:10]
+            # Limit to prevent spam
+            items_to_create = extracted_items[:MAX_BRAIN_DUMP_ITEMS]
 
             with transaction.atomic():
                 for item in items_to_create:

@@ -7,4 +7,7 @@ export type {
   IAchievement,
   IUserAchievement,
   IStreak,
+  IBrainDumpResponse,
+  IAsyncTaskResponse,
+  ITaskStatusResponse,
 } from "./execuflow.service";

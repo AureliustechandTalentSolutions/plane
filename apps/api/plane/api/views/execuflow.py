@@ -31,6 +31,7 @@ from plane.api.serializers.execuflow import (
 # ExecuFlow AI providers
 from plane.api.throttles import AIBurstThrottle, AIEndpointThrottle
 from plane.api.views.ai_providers import decompose_issue_with_ai, extract_actions_with_ai
+from plane.bgtasks.execuflow_tasks import decompose_issue_task, process_brain_dump_task
 from plane.app.permissions import ProjectEntityPermission
 from plane.db.models import (
     Achievement,
@@ -750,13 +751,16 @@ class StreakEndpoint(BaseAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+            # Get workspace ID from the project to ensure consistency
+            from plane.db.models import Project
+            project = Project.objects.get(pk=project_id)
+
             streak, created = Streak.objects.get_or_create(
-                workspace__slug=slug,
+                workspace_id=project.workspace_id,
                 project_id=project_id,
                 created_by=request.user,
                 streak_type=streak_type,
                 defaults={
-                    "workspace_id": request.user.last_workspace_id,
                     "updated_by": request.user,
                     "current_count": 0,
                     "longest_count": 0,
