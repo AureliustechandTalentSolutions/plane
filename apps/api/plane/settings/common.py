@@ -6,20 +6,17 @@
 
 # Python imports
 import os
-from urllib.parse import urlparse
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 # Third party imports
 import dj_database_url
+from corsheaders.defaults import default_headers
 
 # Django imports
 from django.core.management.utils import get_random_secret_key
-from corsheaders.defaults import default_headers
-
 
 # Module imports
 from plane.utils.url import is_valid_url
-
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -304,6 +301,11 @@ ANALYTICS_BASE_API = os.environ.get("ANALYTICS_BASE_API", False)
 # Posthog settings
 POSTHOG_API_KEY = os.environ.get("POSTHOG_API_KEY", False)
 POSTHOG_HOST = os.environ.get("POSTHOG_HOST", False)
+
+# ExecuFlow AI Provider Keys
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+EXECUFLOW_AI_PROVIDER = os.environ.get("EXECUFLOW_AI_PROVIDER", "anthropic")  # "anthropic" | "google" | "fallback"
 
 # Skip environment variable configuration
 SKIP_ENV_VAR = os.environ.get("SKIP_ENV_VAR", "1") == "1"

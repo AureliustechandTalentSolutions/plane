@@ -1,0 +1,122 @@
+[
+  {
+    "model": "db.dopaminemenu",
+    "fields": {
+      "category": "appetizer",
+      "title": "5-min stretch break",
+      "description": "Stand up and stretch for 5 minutes",
+      "cooldown_minutes": 30,
+      "use_count": 0
+    }
+  },
+  {
+    "model": "db.dopaminemenu",
+    "fields": {
+      "category": "appetizer",
+      "title": "Listen to a favorite song",
+      "description": "Play one song you love as a quick pick-me-up",
+      "cooldown_minutes": 20,
+      "use_count": 0
+    }
+  },
+  {
+    "model": "db.dopaminemenu",
+    "fields": {
+      "category": "side",
+      "title": "10-min walk outside",
+      "description": "Take a short walk to reset your focus",
+      "cooldown_minutes": 60,
+      "use_count": 0
+    }
+  },
+  {
+    "model": "db.dopaminemenu",
+    "fields": {
+      "category": "side",
+      "title": "Doodle or sketch",
+      "description": "Free-draw for 10 minutes to activate creativity",
+      "cooldown_minutes": 45,
+      "use_count": 0
+    }
+  },
+  {
+    "model": "db.dopaminemenu",
+    "fields": {
+      "category": "entree",
+      "title": "20-min gaming session",
+      "description": "Play a quick game for a rewarding break",
+      "cooldown_minutes": 120,
+      "use_count": 0
+    }
+  },
+  {
+    "model": "db.dopaminemenu",
+    "fields": {
+      "category": "entree",
+      "title": "Watch a short video",
+      "description": "Enjoy a 15-20 minute episode or video",
+      "cooldown_minutes": 90,
+      "use_count": 0
+    }
+  },
+  {
+    "model": "db.dopaminemenu",
+    "fields": {
+      "category": "dessert",
+      "title": "Treat yourself to a snack",
+      "description": "Get your favorite snack as a completion reward",
+      "cooldown_minutes": 180,
+      "use_count": 0
+    }
+  },
+  {
+    "model": "db.achievement",
+    "fields": {
+      "name": "First Step",
+      "description": "Complete your first micro-task",
+      "icon": "🐣",
+      "xp_value": 10,
+      "criteria_json": { "micro_tasks_completed": 1 }
+    }
+  },
+  {
+    "model": "db.achievement",
+    "fields": {
+      "name": "Focus Warrior",
+      "description": "Complete 5 focus sessions",
+      "icon": "⚔️",
+      "xp_value": 50,
+      "criteria_json": { "focus_sessions_completed": 5 }
+    }
+  },
+  {
+    "model": "db.achievement",
+    "fields": {
+      "name": "Brain Stormer",
+      "description": "Use brain dump 10 times",
+      "icon": "🧠",
+      "xp_value": 30,
+      "criteria_json": { "brain_dumps_completed": 10 }
+    }
+  },
+  {
+    "model": "db.achievement",
+    "fields": {
+      "name": "Streak Keeper",
+      "description": "Maintain a 7-day streak",
+      "icon": "🔥",
+      "xp_value": 100,
+      "criteria_json": { "streak_days": 7 }
+    }
+  },
+  {
+    "model": "db.achievement",
+    "fields": {
+      "name": "Context Switcher",
+      "description": "Save and restore 5 context snapshots",
+      "icon": "📸",
+      "xp_value": 25,
+      "criteria_json": { "snapshots_restored": 5 }
+    }
+  }
+]
