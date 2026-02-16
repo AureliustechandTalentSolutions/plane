@@ -4,6 +4,9 @@
  * See the LICENSE file for details.
  */
 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { describe, it, expect } from "vitest";
 import enTranslations from "../src/locales/en/translations";
 
@@ -41,9 +44,7 @@ describe("ExecuFlow Translations", () => {
     });
 
     it("should have completion message", () => {
-      expect(enTranslations.execuflow.focus_timer.session_complete).toBe(
-        "Focus session complete! Take a break."
-      );
+      expect(enTranslations.execuflow.focus_timer.session_complete).toBe("Focus session complete! Take a break.");
     });
   });
 
