@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "django_celery_beat",
+    "channels",
 ]
 
 # Middlewares
@@ -200,6 +201,21 @@ else:
         }
     }
 
+# Django Channels - WebSocket channel layer
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [REDIS_URL]},
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
+
 # Password validations
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -308,6 +324,9 @@ POSTHOG_HOST = os.environ.get("POSTHOG_HOST", False)
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 EXECUFLOW_AI_PROVIDER = os.environ.get("EXECUFLOW_AI_PROVIDER", "anthropic")  # "anthropic" | "google" | "fallback"
+
+# ExecuFlow Cache Settings
+EXECUFLOW_CACHE_TIMEOUT = int(os.environ.get("EXECUFLOW_CACHE_TIMEOUT", 300))  # seconds
 
 # Skip environment variable configuration
 SKIP_ENV_VAR = os.environ.get("SKIP_ENV_VAR", "1") == "1"

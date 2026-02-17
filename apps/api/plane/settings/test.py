@@ -14,3 +14,10 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 INSTALLED_APPS.append(  # noqa
     "plane.tests"
 )
+
+# Use in-memory channel layer for WebSocket tests
+CHANNEL_LAYERS = {  # noqa: F811
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}

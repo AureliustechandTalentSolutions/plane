@@ -12,8 +12,33 @@ import { Flame, ChevronRight, Brain, Sparkles } from "lucide-react";
 // plane imports
 import type { THomeWidgetProps } from "@plane/types";
 import { useTranslation } from "@plane/i18n";
+// store
+import { useExecuFlow } from "@/hooks/store/use-execuflow";
+import type { TEnergyLevel as TStoreEnergyLevel } from "@/store/execuflow.store";
 
 type TEnergyLevel = "depleted" | "low" | "medium" | "high" | "dragon";
+
+/**
+ * Maps the widget's five-level energy scale to the API's three-level scale.
+ * "depleted" and "low" both map to "low"; "dragon" and "high" both map to "high".
+ */
+const ENERGY_MAP: Record<TEnergyLevel, TStoreEnergyLevel> = {
+  depleted: "low",
+  low: "low",
+  medium: "medium",
+  high: "high",
+  dragon: "high",
+};
+
+/**
+ * Reverse-maps the store's three-level energy to the closest widget level for
+ * initial display when the store already has a value.
+ */
+const STORE_TO_WIDGET_MAP: Record<TStoreEnergyLevel, TEnergyLevel> = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+};
 
 const ENERGY_COLORS: Record<TEnergyLevel, string> = {
   depleted: "text-red-400",
@@ -27,7 +52,11 @@ const ENERGY_LEVELS: TEnergyLevel[] = ["depleted", "low", "medium", "high", "dra
 
 export const ExecuFlowDragonWidget = observer(function ExecuFlowDragonWidget(_props: THomeWidgetProps) {
   const { t } = useTranslation();
-  const [energy, setEnergy] = useState<TEnergyLevel>("medium");
+  const execuFlowStore = useExecuFlow();
+
+  // Initialise widget energy from the store so the display is consistent with
+  // whatever was last persisted to the API, falling back to "medium".
+  const [energy, setEnergy] = useState<TEnergyLevel>(() => STORE_TO_WIDGET_MAP[execuFlowStore.energyLevel] ?? "medium");
   const [showTips, setShowTips] = useState(false);
 
   const energyPercent: Record<TEnergyLevel, number> = {
@@ -60,10 +89,14 @@ export const ExecuFlowDragonWidget = observer(function ExecuFlowDragonWidget(_pr
     [t]
   );
 
-  const handleEnergySelect = useCallback((level: TEnergyLevel) => {
-    setEnergy(level);
-    setShowTips(true);
-  }, []);
+  const handleEnergySelect = useCallback(
+    (level: TEnergyLevel) => {
+      setEnergy(level);
+      setShowTips(true);
+      execuFlowStore.updateEnergyLevel(ENERGY_MAP[level]);
+    },
+    [execuFlowStore]
+  );
 
   return (
     <section

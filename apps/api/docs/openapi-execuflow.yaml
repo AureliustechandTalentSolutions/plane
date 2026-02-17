@@ -1,0 +1,1425 @@
+openapi: 3.0.3
+info:
+  title: Plane ExecuFlow API
+  description: |
+    ExecuFlow AI -- Neurodivergent-First Executive Function Support.
+
+    These endpoints power energy-aware micro-task decomposition, focus session
+    management, context time-machine snapshots, dopamine-driven reward menus,
+    and gamification streaks.
+
+    **Design Axioms:**
+    1. Externalize Everything -- compensate for working-memory deficits
+    2. Reduce to Binary -- eliminate choice paralysis
+    3. No-Shame Protocol -- never punish, always encourage
+    4. Body-Double Always -- AI companion is always present
+    5. Dopamine by Design -- reward early and often
+    6. Time is Felt, Not Counted -- make time concrete and visual
+
+    **Authentication:** All endpoints require session authentication or API key.
+    All endpoints are scoped to a workspace (`slug`) and project (`project_id`).
+  version: 0.1.0
+  contact:
+    name: Plane
+    url: https://plane.so
+  license:
+    name: GNU AGPLv3
+    url: https://github.com/makeplane/plane/blob/preview/LICENSE.txt
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.plane.so
+    description: Production
+
+tags:
+  - name: ExecuFlow Micro-Tasks
+    description: Energy-aware atomic work unit management and LLM decomposition.
+  - name: ExecuFlow Brain Dump
+    description: Raw thought capture and async AI-powered action extraction.
+  - name: ExecuFlow Focus Sessions
+    description: Timed focus blocks with body-double AI and interrupt queuing.
+  - name: ExecuFlow Context Snapshots
+    description: Workspace state time-machine for context preservation.
+  - name: ExecuFlow Dopamine Menu
+    description: Categorized reward system with cooldown enforcement.
+  - name: ExecuFlow Achievements
+    description: Milestone celebrations and gamification.
+  - name: ExecuFlow Streaks
+    description: No-Shame consistency tracking.
+  - name: ExecuFlow Task Status
+    description: Async task status polling for background operations.
+
+paths:
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/micro-tasks/:
+    get:
+      operationId: execuflow_micro_tasks_list
+      summary: List micro-tasks
+      description: >
+        Retrieve a paginated list of micro-tasks for a project. Supports
+        filtering by energy level, estimated duration, completion status,
+        and parent issue.
+      tags:
+        - ExecuFlow Micro-Tasks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - name: energy_level
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high]
+          description: Filter by required energy level.
+        - name: max_minutes
+          in: query
+          schema:
+            type: integer
+          description: Maximum estimated minutes (inclusive upper bound).
+        - name: is_completed
+          in: query
+          schema:
+            type: boolean
+          description: Filter by completion status.
+        - name: issue
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by parent issue UUID.
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of micro-tasks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMicroTaskList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      operationId: execuflow_micro_tasks_create
+      summary: Create a micro-task
+      description: >
+        Create a new energy-tagged micro-task within a project. The task is
+        associated with a parent issue and tagged with an energy level
+        (low, medium, high) and an estimated duration in minutes.
+      tags:
+        - ExecuFlow Micro-Tasks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicroTaskCreate'
+      responses:
+        '201':
+          description: Micro-task created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MicroTask'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/micro-tasks/{pk}/:
+    get:
+      operationId: execuflow_micro_tasks_retrieve
+      summary: Get a micro-task
+      description: Retrieve a single micro-task by its UUID.
+      tags:
+        - ExecuFlow Micro-Tasks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/PkPath'
+      responses:
+        '200':
+          description: Micro-task details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MicroTask'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      operationId: execuflow_micro_tasks_partial_update
+      summary: Update a micro-task
+      description: >
+        Partially update a micro-task. Supports updating title, description,
+        energy level, estimated minutes, sort order, and completion status.
+      tags:
+        - ExecuFlow Micro-Tasks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/PkPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicroTaskCreate'
+      responses:
+        '200':
+          description: Updated micro-task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MicroTask'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      operationId: execuflow_micro_tasks_destroy
+      summary: Delete a micro-task
+      description: Permanently delete a micro-task.
+      tags:
+        - ExecuFlow Micro-Tasks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/PkPath'
+      responses:
+        '204':
+          description: Micro-task deleted.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/micro-tasks/decompose/:
+    post:
+      operationId: execuflow_micro_tasks_decompose
+      summary: Decompose an issue into micro-tasks
+      description: >
+        Submit an issue for LLM-powered decomposition into energy-tagged
+        micro-tasks. Processing is asynchronous -- poll the task-status
+        endpoint with the returned task_id to retrieve results.
+        Rate-limited to 10 requests/minute with burst limit of 3/second.
+      tags:
+        - ExecuFlow Micro-Tasks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicroStepDecompose'
+      responses:
+        '202':
+          description: Decomposition task accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecomposeAccepted'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: Rate limit exceeded.
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/brain-dump/:
+    post:
+      operationId: execuflow_brain_dump_create
+      summary: Submit a brain dump
+      description: >
+        Capture raw, unstructured thoughts and optionally extract action items.
+        Processing is asynchronous -- poll the task-status endpoint with the
+        returned task_id. Supports text, voice-to-text, and pasted content.
+        Rate-limited to 10 requests/minute with burst limit of 3/second.
+      tags:
+        - ExecuFlow Brain Dump
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrainDump'
+      responses:
+        '202':
+          description: Brain dump processing started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrainDumpAccepted'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Rate limit exceeded.
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/task-status/:
+    get:
+      operationId: execuflow_task_status
+      summary: Check async task status
+      description: >
+        Poll the status of an asynchronous ExecuFlow operation. Returns the
+        Celery task state and, upon completion, the result data or error
+        details. The task_id must belong to the requesting user.
+      tags:
+        - ExecuFlow Task Status
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - name: task_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Celery task UUID returned by the decompose or brain-dump endpoint.
+      responses:
+        '200':
+          description: Task status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/focus-sessions/:
+    get:
+      operationId: execuflow_focus_sessions_list
+      summary: List focus sessions
+      description: >
+        Retrieve a paginated list of the current user's focus sessions.
+        Filter by session type or active/completed status.
+      tags:
+        - ExecuFlow Focus Sessions
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - name: session_type
+          in: query
+          schema:
+            type: string
+            enum: [pomodoro, deep_work, body_double, free_flow]
+          description: Filter by session type.
+        - name: active
+          in: query
+          schema:
+            type: boolean
+          description: Filter by active (true) or completed (false) sessions.
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of focus sessions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFocusSessionList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      operationId: execuflow_focus_sessions_create
+      summary: Start a focus session
+      description: >
+        Create a new focus session. Supported types: pomodoro (25 min default),
+        deep_work (90 min), body_double (AI companion), and free_flow (no timer).
+        Optionally link to an issue and record pre-session mood (1-5).
+      tags:
+        - ExecuFlow Focus Sessions
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FocusSessionCreate'
+      responses:
+        '201':
+          description: Focus session started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FocusSession'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/focus-sessions/{pk}/:
+    get:
+      operationId: execuflow_focus_sessions_retrieve
+      summary: Get a focus session
+      description: Retrieve details of a single focus session including computed duration.
+      tags:
+        - ExecuFlow Focus Sessions
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/PkPath'
+      responses:
+        '200':
+          description: Focus session details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FocusSession'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      operationId: execuflow_focus_sessions_partial_update
+      summary: Update a focus session
+      description: >
+        Update a focus session. Send `end_session: true` to end the session
+        and compute actual duration. Also supports updating mood_after (1-5),
+        notes_json, and interrupt_queue.
+      tags:
+        - ExecuFlow Focus Sessions
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/PkPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FocusSessionUpdate'
+      responses:
+        '200':
+          description: Updated focus session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FocusSession'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/context-snapshots/:
+    get:
+      operationId: execuflow_context_snapshots_list
+      summary: List context snapshots
+      description: >
+        Retrieve a paginated list of the current user's context snapshots,
+        ordered by most recent first.
+      tags:
+        - ExecuFlow Context Snapshots
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of context snapshots.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedContextSnapshotList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      operationId: execuflow_context_snapshots_create
+      summary: Save a context snapshot
+      description: >
+        Save a workspace context snapshot. The snapshot_data JSON captures
+        the full workspace state: open issues, scroll positions, active
+        filters, draft text, and mental notes.
+      tags:
+        - ExecuFlow Context Snapshots
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextSnapshotCreate'
+      responses:
+        '201':
+          description: Snapshot saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextSnapshot'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/context-snapshots/{pk}/restore/:
+    post:
+      operationId: execuflow_context_snapshots_restore
+      summary: Restore a context snapshot
+      description: >
+        Retrieve the full snapshot data for client-side workspace restoration.
+        The response includes the complete snapshot_data JSON.
+      tags:
+        - ExecuFlow Context Snapshots
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/PkPath'
+      responses:
+        '200':
+          description: Snapshot data for restoration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextSnapshotRestore'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/dopamine-menu/:
+    get:
+      operationId: execuflow_dopamine_menu_list
+      summary: List dopamine menu rewards
+      description: >
+        Retrieve the current user's reward menu items, optionally filtered by
+        category (appetizer, side, entree, dessert). Results are cached.
+      tags:
+        - ExecuFlow Dopamine Menu
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [appetizer, side, entree, dessert]
+          description: Filter by reward category.
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of rewards.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDopamineMenuList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/dopamine-menu/{pk}/claim/:
+    post:
+      operationId: execuflow_dopamine_menu_claim
+      summary: Claim a reward
+      description: >
+        Claim a reward from the dopamine menu. If the reward is on cooldown,
+        a 429 response is returned with cooldown details.
+      tags:
+        - ExecuFlow Dopamine Menu
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/PkPath'
+      responses:
+        '200':
+          description: Reward claimed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DopamineMenu'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: Reward is on cooldown.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardCooldown'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/achievements/:
+    get:
+      operationId: execuflow_achievements_list
+      summary: List achievements
+      description: >
+        Retrieve all available achievements for a project. Results are cached.
+        Categories: momentum, consistency, mastery, exploration, collaboration.
+      tags:
+        - ExecuFlow Achievements
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of achievements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAchievementList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/achievements/mine/:
+    get:
+      operationId: execuflow_user_achievements_list
+      summary: List my achievements
+      description: >
+        Retrieve achievements earned by the current user, with nested
+        achievement details. Ordered by most recently earned first.
+      tags:
+        - ExecuFlow Achievements
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of earned achievements.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserAchievementList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/workspaces/{slug}/projects/{project_id}/execuflow/streaks/:
+    get:
+      operationId: execuflow_streaks_list
+      summary: List streaks
+      description: >
+        Retrieve all streaks for the current user in this project.
+        Streak types: daily_login, focus_session, task_completion,
+        brain_dump, review. Statuses: active, paused, archived.
+      tags:
+        - ExecuFlow Streaks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated list of streaks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStreakList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      operationId: execuflow_streaks_update
+      summary: Update a streak
+      description: >
+        Record streak activity, pause, or resume a streak.
+        'record' increments the streak and updates personal best.
+        'pause' sets status to paused (No-Shame: never breaks).
+        'resume' reactivates a paused streak.
+        If no streak of the given type exists, one is created automatically.
+      tags:
+        - ExecuFlow Streaks
+      parameters:
+        - $ref: '#/components/parameters/SlugPath'
+        - $ref: '#/components/parameters/ProjectIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StreakUpdate'
+      responses:
+        '200':
+          description: Updated streak.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Streak'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  parameters:
+    SlugPath:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Workspace slug.
+
+    ProjectIdPath:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Project UUID.
+
+    PkPath:
+      name: pk
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Resource UUID.
+
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+      description: Page number (default 1).
+
+    PageSize:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+      description: Items per page (default 20, max 100).
+
+  responses:
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    # ── MicroTask ──
+
+    MicroTask:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        issue:
+          type: string
+          format: uuid
+          description: Parent issue UUID.
+        title:
+          type: string
+          maxLength: 512
+        description_json:
+          type: object
+          description: Rich text description in Plane JSON format.
+        energy_level:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        estimated_minutes:
+          type: integer
+          minimum: 1
+          maximum: 120
+          default: 5
+        is_completed:
+          type: boolean
+          default: false
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        sort_order:
+          type: number
+          format: float
+          default: 65535
+        just_start_eligible:
+          type: boolean
+          default: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    MicroTaskCreate:
+      type: object
+      required:
+        - title
+        - issue
+      properties:
+        title:
+          type: string
+          maxLength: 512
+        description_json:
+          type: object
+        issue:
+          type: string
+          format: uuid
+        energy_level:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        estimated_minutes:
+          type: integer
+          minimum: 1
+          maximum: 120
+          default: 5
+        sort_order:
+          type: number
+          format: float
+        is_completed:
+          type: boolean
+          default: false
+
+    PaginatedMicroTaskList:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MicroTask'
+
+    MicroStepDecompose:
+      type: object
+      required:
+        - parent_issue_id
+      properties:
+        parent_issue_id:
+          type: string
+          format: uuid
+          description: UUID of the issue to decompose into micro-tasks.
+        max_steps:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 5
+          description: Maximum number of micro-tasks to generate.
+        target_energy:
+          type: string
+          enum: [low, medium, high]
+          description: Filter generated tasks to this energy level.
+        max_minutes_per_step:
+          type: integer
+          minimum: 1
+          maximum: 120
+          default: 15
+          description: Maximum minutes per individual micro-task.
+
+    DecomposeAccepted:
+      type: object
+      properties:
+        task_id:
+          type: string
+          description: Celery task ID for status polling.
+        status:
+          type: string
+          example: processing
+        message:
+          type: string
+        issue_id:
+          type: string
+          format: uuid
+
+    # ── Brain Dump ──
+
+    BrainDump:
+      type: object
+      required:
+        - raw_text
+      properties:
+        raw_text:
+          type: string
+          maxLength: 10000
+          description: Raw text dump from user (voice-to-text or typed).
+        source:
+          type: string
+          enum: [text, voice, paste]
+          default: text
+          description: How the input was captured.
+        auto_create_issues:
+          type: boolean
+          default: false
+          description: Whether to auto-create issues from extracted action items.
+
+    BrainDumpAccepted:
+      type: object
+      properties:
+        task_id:
+          type: string
+          description: Celery task ID for status polling.
+        status:
+          type: string
+          example: processing
+        message:
+          type: string
+        raw_text:
+          type: string
+        source:
+          type: string
+
+    # ── Task Status ──
+
+    TaskStatus:
+      type: object
+      properties:
+        task_id:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, STARTED, SUCCESS, FAILURE, RETRY, REVOKED]
+        result:
+          type: object
+          description: Result data on SUCCESS.
+        error:
+          type: string
+          description: Error details on FAILURE.
+        message:
+          type: string
+          description: Status message while processing.
+
+    # ── Focus Session ──
+
+    FocusSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        issue:
+          type: string
+          format: uuid
+          nullable: true
+        micro_task:
+          type: string
+          format: uuid
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        planned_duration_minutes:
+          type: integer
+          default: 25
+        actual_duration_minutes:
+          type: integer
+          nullable: true
+          readOnly: true
+        session_type:
+          type: string
+          enum: [pomodoro, deep_work, body_double, free_flow]
+          default: pomodoro
+        interrupt_queue:
+          type: array
+          items:
+            type: object
+        mood_before:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+        mood_after:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+        notes_json:
+          type: object
+        is_active:
+          type: boolean
+          default: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    FocusSessionCreate:
+      type: object
+      properties:
+        session_type:
+          type: string
+          enum: [pomodoro, deep_work, body_double, free_flow]
+          default: pomodoro
+        planned_duration_minutes:
+          type: integer
+          default: 25
+        issue:
+          type: string
+          format: uuid
+          nullable: true
+        mood_before:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+        notes_json:
+          type: object
+
+    FocusSessionUpdate:
+      type: object
+      properties:
+        end_session:
+          type: boolean
+          description: Set to true to end the session.
+        mood_after:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Post-session mood (1-5).
+        notes_json:
+          type: object
+          description: Freeform notes captured during the session.
+        interrupt_queue:
+          type: array
+          items:
+            type: object
+          description: Queued notifications during the session.
+
+    PaginatedFocusSessionList:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FocusSession'
+
+    # ── Context Snapshot ──
+
+    ContextSnapshot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 255
+          default: Untitled Snapshot
+        snapshot_data:
+          type: object
+          description: Full workspace state as JSON.
+        trigger:
+          type: string
+          enum: [manual, auto_interrupt, auto_switch, auto_timer, session_end]
+          default: manual
+        restored_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_pinned:
+          type: boolean
+          default: false
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    ContextSnapshotCreate:
+      type: object
+      required:
+        - title
+        - snapshot_data
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        snapshot_data:
+          type: object
+          description: Full workspace state to capture.
+        trigger:
+          type: string
+          enum: [manual, auto_interrupt, auto_switch, auto_timer, session_end]
+          default: manual
+
+    ContextSnapshotRestore:
+      type: object
+      properties:
+        snapshot_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        snapshot_data:
+          type: object
+          description: Full workspace state for client restoration.
+        trigger:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    PaginatedContextSnapshotList:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextSnapshot'
+
+    # ── Dopamine Menu ──
+
+    DopamineMenu:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 255
+        category:
+          type: string
+          enum: [appetizer, side, entree, dessert]
+          default: appetizer
+        description:
+          type: string
+        cooldown_minutes:
+          type: integer
+          default: 0
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+        use_count:
+          type: integer
+          default: 0
+        is_active:
+          type: boolean
+          default: true
+        is_available:
+          type: boolean
+          readOnly: true
+          description: Whether the reward is currently available (past cooldown).
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+
+    RewardCooldown:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Reward is on cooldown.
+        last_used:
+          type: string
+          format: date-time
+        cooldown_minutes:
+          type: integer
+
+    PaginatedDopamineMenuList:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DopamineMenu'
+
+    # ── Achievement ──
+
+    Achievement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        icon:
+          type: string
+          maxLength: 50
+          default: "\U0001F3C6"
+        category:
+          type: string
+          enum: [momentum, consistency, mastery, exploration, collaboration]
+          default: momentum
+        criteria_json:
+          type: object
+          description: Machine-readable criteria for auto-unlocking.
+        xp_value:
+          type: integer
+          default: 10
+        is_secret:
+          type: boolean
+          default: false
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+
+    UserAchievement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        achievement:
+          $ref: '#/components/schemas/Achievement'
+        earned_at:
+          type: string
+          format: date-time
+          readOnly: true
+        celebration_shown:
+          type: boolean
+          default: false
+
+    PaginatedAchievementList:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Achievement'
+
+    PaginatedUserAchievementList:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserAchievement'
+
+    # ── Streak ──
+
+    Streak:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        streak_type:
+          type: string
+          enum: [daily_login, focus_session, task_completion, brain_dump, review]
+        current_count:
+          type: integer
+          readOnly: true
+          default: 0
+        longest_count:
+          type: integer
+          readOnly: true
+          default: 0
+        last_activity_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        grace_period_hours:
+          type: integer
+          default: 48
+        status:
+          type: string
+          enum: [active, paused, archived]
+          default: active
+        metadata:
+          type: object
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    StreakUpdate:
+      type: object
+      required:
+        - streak_type
+      properties:
+        streak_type:
+          type: string
+          enum: [daily_login, focus_session, task_completion, brain_dump, review]
+          description: Type of streak to update.
+        action:
+          type: string
+          enum: [record, pause, resume]
+          description: "Action: record activity, pause, or resume."
+
+    PaginatedStreakList:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Streak'
+
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: session-id
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+security:
+  - sessionAuth: []
+  - apiKeyAuth: []

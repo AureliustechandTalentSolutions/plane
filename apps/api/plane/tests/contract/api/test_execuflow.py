@@ -1197,28 +1197,44 @@ class TestExecuFlowAuthorization:
     # ── URL helpers ──────────────────────────────────────────────────────────
 
     def micro_task_list_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/micro-tasks/"
+        """Return URL for micro-task list endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/micro-tasks/"
 
     def focus_session_list_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/focus-sessions/"
+        """Return URL for focus-session list endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/focus-sessions/"
 
     def brain_dump_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/brain-dump/"
+        """Return URL for brain-dump endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/brain-dump/"
 
     def decompose_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/micro-tasks/decompose/"
+        """Return URL for micro-task decompose endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/micro-tasks/decompose/"
 
     def task_status_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/task-status/"
+        """Return URL for task-status endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/task-status/"
 
     def dopamine_menu_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/dopamine-menu/"
+        """Return URL for dopamine-menu list endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/dopamine-menu/"
 
     def achievements_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/achievements/"
+        """Return URL for achievements list endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/achievements/"
 
     def streaks_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/streaks/"
+        """Return URL for streaks endpoint."""
+        base = f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}"
+        return f"{base}/execuflow/streaks/"
 
     # ── Unauthenticated request tests ────────────────────────────────────────
 
@@ -1235,7 +1251,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_unauthenticated_micro_task_create_returns_403(self, api_client, workspace, project):
@@ -1251,7 +1269,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
         assert not MicroTask.objects.filter(title="Should Not Be Created").exists()
 
     @pytest.mark.django_db
@@ -1267,7 +1287,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_unauthenticated_brain_dump_returns_403(self, api_client, workspace, project):
@@ -1283,7 +1305,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_unauthenticated_decompose_returns_403(self, api_client, workspace, project):
@@ -1299,7 +1323,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_unauthenticated_task_status_returns_403(self, api_client, workspace, project):
@@ -1315,7 +1341,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_unauthenticated_dopamine_menu_returns_403(self, api_client, workspace, project):
@@ -1330,7 +1358,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_unauthenticated_achievements_returns_403(self, api_client, workspace, project):
@@ -1345,7 +1375,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_unauthenticated_streaks_returns_403(self, api_client, workspace, project):
@@ -1360,7 +1392,9 @@ class TestExecuFlowAuthorization:
         assert response.status_code in [
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
-        ], f"Expected 401 or 403 but got {response.status_code}"
+        ], (
+            f"Expected 401 or 403 but got {response.status_code}"
+        )
 
     # ── Non-member access tests ───────────────────────────────────────────────
 
@@ -1387,7 +1421,9 @@ class TestExecuFlowAuthorization:
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
             status.HTTP_404_NOT_FOUND,  # Project may not be visible
-        ], f"Expected 401/403/404 but got {response.status_code}"
+        ], (
+            f"Expected 401/403/404 but got {response.status_code}"
+        )
 
     @pytest.mark.django_db
     def test_non_member_cannot_create_micro_task(self, api_client, workspace, project):
@@ -1412,7 +1448,9 @@ class TestExecuFlowAuthorization:
             status.HTTP_401_UNAUTHORIZED,
             status.HTTP_403_FORBIDDEN,
             status.HTTP_404_NOT_FOUND,
-        ], f"Expected 401/403/404 but got {response.status_code}"
+        ], (
+            f"Expected 401/403/404 but got {response.status_code}"
+        )
         assert not MicroTask.objects.filter(title="Unauthorized Task").exists()
 
 
@@ -1529,7 +1567,8 @@ class TestExecuFlowCrossUserIsolation:
 
         # Assert - 404 because the query filters by created_by=request.user
         assert response.status_code == status.HTTP_404_NOT_FOUND, (
-            f"Expected 404 when patching another user's focus session, got {response.status_code}"
+            "Expected 404 when patching another user's focus session, "
+            f"got {response.status_code}"
         )
 
     # ── ContextSnapshot isolation ─────────────────────────────────────────────
@@ -1539,13 +1578,14 @@ class TestExecuFlowCrossUserIsolation:
         self, session_client, workspace, project, other_user
     ):
         """A user cannot restore another user's context snapshot - must get 404"""
-        # Arrange - create a snapshot owned by other_user
+        # Arrange - snapshot owned exclusively by other_user
         other_snapshot = ContextSnapshot.objects.create(
             title="Other User's Snapshot",
             snapshot_data={"secret_data": True},
             trigger="manual",
             workspace=workspace,
             project=project,
+            user=other_user,
             created_by=other_user,
             updated_by=other_user,
         )
@@ -1560,7 +1600,8 @@ class TestExecuFlowCrossUserIsolation:
 
         # Assert - 404 because the query filters by created_by=request.user
         assert response.status_code == status.HTTP_404_NOT_FOUND, (
-            f"Expected 404 when restoring another user's snapshot, got {response.status_code}"
+            "Expected 404 when restoring another user's snapshot, "
+            f"got {response.status_code}"
         )
 
     # ── DopamineMenu isolation ────────────────────────────────────────────────
@@ -1591,12 +1632,13 @@ class TestExecuFlowCrossUserIsolation:
 
         # Assert - 404 because the claim query filters by user=request.user
         assert response.status_code == status.HTTP_404_NOT_FOUND, (
-            f"Expected 404 when claiming another user's reward, got {response.status_code}"
+            "Expected 404 when claiming another user's reward, "
+            f"got {response.status_code}"
         )
         # Verify the reward's use_count was NOT incremented
         other_reward.refresh_from_db()
         assert other_reward.use_count == 0 or other_reward.use_count is None, (
-            "Other user's reward use_count must not be incremented by unauthorized claim attempt"
+            "Other user's reward use_count must not be incremented"
         )
 
     # ── Streak isolation ──────────────────────────────────────────────────────
@@ -1606,7 +1648,7 @@ class TestExecuFlowCrossUserIsolation:
         self, session_client, workspace, project, create_user, other_user
     ):
         """Users only see their own streaks; other users' streaks are invisible"""
-        # Arrange - create streaks for both users
+        # Arrange - create_user's streak (daily_login, count=10)
         Streak.objects.create(
             streak_type="daily_login",
             current_count=10,
@@ -1615,9 +1657,12 @@ class TestExecuFlowCrossUserIsolation:
             status="active",
             workspace=workspace,
             project=project,
+            user=create_user,
             created_by=create_user,
             updated_by=create_user,
         )
+        # other_user's streak (focus_session, count=99) must NOT appear
+        # in create_user's results
         Streak.objects.create(
             streak_type="focus_session",
             current_count=99,
@@ -1626,24 +1671,34 @@ class TestExecuFlowCrossUserIsolation:
             status="active",
             workspace=workspace,
             project=project,
+            user=other_user,
             created_by=other_user,
             updated_by=other_user,
         )
 
-        url = f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/execuflow/streaks/"
+        url = (
+            f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}"
+            "/execuflow/streaks/"
+        )
 
-        # Act - create_user lists streaks
+        # Act - create_user lists their streaks
         response = session_client.get(url)
 
-        # Assert
+        # Assert - other_user's focus_session streak (count=99) must not be visible
         assert response.status_code == status.HTTP_200_OK
-        items = response.data.get("results", response.data) if isinstance(response.data, dict) else response.data
-        # create_user must NOT see other_user's focus_session streak (count=99)
+        items = (
+            response.data.get("results", [])
+            if isinstance(response.data, dict)
+            else response.data
+        )
         other_user_streaks = [
             item for item in items
-            if item.get("streak_type") == "focus_session" and item.get("current_count") == 99
+            if item.get("streak_type") == "focus_session"
+            and item.get("current_count") == 99
         ]
-        assert len(other_user_streaks) == 0, "create_user must not see other_user's streaks"
+        assert len(other_user_streaks) == 0, (
+            "create_user must not see other_user's streaks"
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1664,10 +1719,17 @@ class TestExecuFlowTaskStatusIntegration:
     """
 
     def get_url(self, workspace_slug, project_id):
-        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/execuflow/task-status/"
+        """Return URL for task-status endpoint."""
+        base = (
+            f"/api/v1/workspaces/{workspace_slug}"
+            f"/projects/{project_id}"
+        )
+        return f"{base}/execuflow/task-status/"
 
     @pytest.mark.django_db
-    def test_task_status_requires_task_id_param(self, session_client, workspace, project):
+    def test_task_status_requires_task_id_param(
+        self, session_client, workspace, project
+    ):
         """GET task-status without task_id query param returns 400"""
         # Arrange
         url = self.get_url(workspace.slug, project.id)
@@ -1677,7 +1739,8 @@ class TestExecuFlowTaskStatusIntegration:
 
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST, (
-            f"Expected 400 when task_id is missing, got {response.status_code}"
+            "Expected 400 when task_id is missing, "
+            f"got {response.status_code}"
         )
         # Response must contain an error message about the missing parameter
         response_str = str(response.data).lower()
@@ -1686,9 +1749,11 @@ class TestExecuFlowTaskStatusIntegration:
         )
 
     @pytest.mark.django_db
-    def test_task_status_invalid_uuid_returns_404(self, session_client, workspace, project):
-        """GET task-status with non-UUID task_id is rejected with 404 (not 500)"""
-        # Arrange - deliberately malformed task IDs that are not valid UUIDs
+    def test_task_status_invalid_uuid_returns_404(
+        self, session_client, workspace, project
+    ):
+        """GET task-status with non-UUID task_id is rejected with 404"""
+        # Arrange - deliberately malformed task IDs (not valid UUIDs)
         invalid_ids = [
             "not-a-uuid",
             "12345",
@@ -1703,19 +1768,21 @@ class TestExecuFlowTaskStatusIntegration:
             # Act
             response = session_client.get(url, {"task_id": invalid_id})
 
-            # Assert - must return 404, not 500 (validates input before processing)
+            # Assert - must return 404 or 400, never 500
             assert response.status_code in [
                 status.HTTP_404_NOT_FOUND,
                 status.HTTP_400_BAD_REQUEST,
             ], (
-                f"Expected 404 or 400 for invalid task_id '{invalid_id}', "
+                f"Expected 404 or 400 for invalid_id='{invalid_id}', "
                 f"got {response.status_code}"
             )
 
     @pytest.mark.django_db
-    def test_task_status_non_existent_task_returns_404(self, session_client, workspace, project):
+    def test_task_status_non_existent_task_returns_404(
+        self, session_client, workspace, project
+    ):
         """GET task-status with valid UUID but no ownership record returns 404"""
-        # Arrange - a valid UUID that was never registered in the ownership cache
+        # Arrange - UUID never registered in the ownership cache
         non_existent_task_id = str(uuid4())
         url = self.get_url(workspace.slug, project.id)
 
@@ -1724,28 +1791,35 @@ class TestExecuFlowTaskStatusIntegration:
 
         # Assert - 404 (ownership check fails, preventing enumeration)
         assert response.status_code == status.HTTP_404_NOT_FOUND, (
-            f"Expected 404 for task with no ownership record, got {response.status_code}"
+            "Expected 404 for task with no ownership record, "
+            f"got {response.status_code}"
         )
 
     @pytest.mark.django_db
-    def test_task_status_other_users_task_returns_404(self, session_client, workspace, project):
-        """A user cannot poll the status of another user's task - must get 404"""
-        # Arrange - simulate another user's task ownership in the cache
+    def test_task_status_other_users_task_returns_404(
+        self, session_client, workspace, project
+    ):
+        """A user cannot poll the status of another user's task"""
+        # Arrange - place a task ownership entry for a different user ID
         from django.core.cache import cache
 
-        other_user_id = str(uuid4())  # Simulate another user's ID
+        other_user_id = str(uuid4())
         task_id = str(uuid4())
-        # Register the task as belonging to another user
-        cache.set(f"execuflow_task_owner:{task_id}", other_user_id, timeout=3600)
+        cache.set(
+            f"execuflow_task_owner:{task_id}",
+            other_user_id,
+            timeout=3600,
+        )
 
         url = self.get_url(workspace.slug, project.id)
 
-        # Act - session_client is authenticated as create_user (different ID)
+        # Act - session_client is create_user (a different ID than other_user_id)
         response = session_client.get(url, {"task_id": task_id})
 
-        # Assert - 404 because ownership check fails (other_user_id != create_user.id)
+        # Assert - 404 because ownership check: other_user_id != create_user.id
         assert response.status_code == status.HTTP_404_NOT_FOUND, (
-            f"Expected 404 when polling another user's task, got {response.status_code}"
+            "Expected 404 when polling another user's task, "
+            f"got {response.status_code}"
         )
 
 

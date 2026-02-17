@@ -1,0 +1,212 @@
+/* Focus Mode — toggle, overlay & interrupt queue styles */
+
+/* ── Pill toggle ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.35s ease;
+}
+
+.pill.active {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.toggle:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.icon {
+  font-size: 14px;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 700;
+  color: #a5b4fc;
+  letter-spacing: 0.5px;
+}
+
+/* ── Interrupt bar (inline) ── */
+.interruptBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.interruptInput {
+  width: 120px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.interruptInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.interruptInput:focus {
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.interruptBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(99, 102, 241, 0.3);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.interruptBtn:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* ── Full-screen overlay ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.overlayPanel {
+  background: rgba(30, 32, 44, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 32px 36px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+}
+
+.overlayTitle {
+  margin: 0 0 8px;
+  font-size: 22px;
+  color: #fff;
+}
+
+.overlayHint {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 20px;
+}
+
+.dismissBtn {
+  margin-top: 16px;
+  padding: 10px 24px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dismissBtn:hover {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+/* ── Queue list ── */
+.queueList {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.queueItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.queueBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.5px;
+}
+
+.queueNote {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  flex: 1;
+}
+
+.queueTime {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyQueue {
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+}

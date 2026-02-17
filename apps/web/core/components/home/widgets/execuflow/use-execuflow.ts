@@ -5,6 +5,12 @@
  */
 
 import { useState, useCallback, useSyncExternalStore } from "react";
+// plane imports
+import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+// store hook (MobX)
+import { useExecuFlow as useExecuFlowStore } from "@/hooks/store/use-execuflow";
+// local utilities
+import { toApiSessionType, WIDGET_PLANNED_DURATION_MAP } from "./session-type-mapper";
 
 // Local storage keys
 const STORAGE_KEYS = {
@@ -94,6 +100,9 @@ function subscribeToStorage(callback: () => void): () => void {
 }
 
 export function useExecuFlow(_options: UseExecuFlowOptions): UseExecuFlowReturn {
+  // MobX store for API sync
+  const execuFlowStore = useExecuFlowStore();
+
   // Use useSyncExternalStore for SSR-safe localStorage access
   const storedSession = useSyncExternalStore(subscribeToStorage, getStoredSession, () => null);
   const storedCompleted = useSyncExternalStore(subscribeToStorage, getStoredCompletedCount, () => 0);
@@ -112,7 +121,8 @@ export function useExecuFlow(_options: UseExecuFlowOptions): UseExecuFlowReturn 
     setActiveSession(session);
   }, []);
 
-  // Start a new session
+  // Start a new session — persists locally first for offline-first continuity,
+  // then fires the API sync in the background.
   const startSession = useCallback(
     (sessionType: TSessionType) => {
       const plannedMinutes = DURATION_MAP[sessionType];
@@ -126,9 +136,32 @@ export function useExecuFlow(_options: UseExecuFlowOptions): UseExecuFlowReturn 
         isPaused: false,
       };
 
+      // 1. Persist locally immediately so the timer starts regardless of network.
       persistSession(localSession);
+
+      // 2. Sync to API in background — failures are non-fatal.
+      const apiSessionType = toApiSessionType(sessionType);
+      const apiPlannedDuration = WIDGET_PLANNED_DURATION_MAP[sessionType];
+
+      execuFlowStore
+        .startFocusSession(apiSessionType)
+        .then(() => {
+          setToast({
+            type: TOAST_TYPE.SUCCESS,
+            title: "Focus session started",
+            message: `${apiPlannedDuration}-minute ${apiSessionType.replace("_", " ")} session synced.`,
+          });
+        })
+        .catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : "Session saved locally; will sync when online.";
+          setToast({
+            type: TOAST_TYPE.WARNING,
+            title: "Couldn't sync to server",
+            message,
+          });
+        });
     },
-    [persistSession]
+    [persistSession, execuFlowStore]
   );
 
   // Pause session
@@ -145,7 +178,7 @@ export function useExecuFlow(_options: UseExecuFlowOptions): UseExecuFlowReturn 
     }
   }, [activeSession, persistSession]);
 
-  // End session
+  // End session — updates local state first, then syncs end to API.
   const endSession = useCallback(() => {
     if (!activeSession) return;
 
@@ -156,8 +189,40 @@ export function useExecuFlow(_options: UseExecuFlowOptions): UseExecuFlowReturn 
       JSON.stringify({ count: newCount, date: new Date().toDateString() })
     );
 
+    // 1. Clear localStorage immediately so the timer resets without waiting on the network.
     persistSession(null);
-  }, [activeSession, completedToday, persistSession]);
+
+    // 2. Sync session end to API in background — failures are non-fatal.
+    execuFlowStore
+      .endFocusSession()
+      .then(() => {
+        setToast({
+          type: TOAST_TYPE.SUCCESS,
+          title: "Session complete",
+          message: `Great work! You've completed ${newCount} session${newCount !== 1 ? "s" : ""} today.`,
+        });
+      })
+      .catch((err: unknown) => {
+        // If there is no active API session (e.g. started offline), the error is expected.
+        // We still show a completion toast so the user gets positive feedback.
+        const isNoSessionError =
+          err instanceof Error && (err.message.includes("No active session") || err.message.includes("404"));
+
+        if (isNoSessionError) {
+          setToast({
+            type: TOAST_TYPE.SUCCESS,
+            title: "Session complete",
+            message: `Great work! You've completed ${newCount} session${newCount !== 1 ? "s" : ""} today.`,
+          });
+        } else {
+          setToast({
+            type: TOAST_TYPE.WARNING,
+            title: "Session ended locally",
+            message: "Couldn't sync completion to server. Your progress is saved locally.",
+          });
+        }
+      });
+  }, [activeSession, completedToday, persistSession, execuFlowStore]);
 
   // Update seconds left (called by timer)
   const updateSecondsLeft = useCallback(

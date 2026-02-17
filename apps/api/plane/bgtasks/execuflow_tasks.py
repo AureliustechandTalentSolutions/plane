@@ -24,6 +24,7 @@ from plane.services.ai import (
     decompose_issue_with_ai,
     extract_actions_with_ai,
 )
+from plane.consumers.utils import broadcast_task_update
 from plane.db.models import Issue, MicroTask, Project, User
 
 logger = logging.getLogger(__name__)
@@ -67,22 +68,26 @@ def decompose_issue_task(
             issue = Issue.objects.get(pk=issue_id, workspace_id=workspace_id)
         except Issue.DoesNotExist:
             logger.error("decompose_issue_task: Issue %s not found", issue_id)
-            return {
+            result = {
                 "status": "error",
                 "issue_id": issue_id,
                 "error": "Issue not found",
             }
+            broadcast_task_update(self.request.id, result)
+            return result
 
         # Get user for created_by/updated_by
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
             logger.error("decompose_issue_task: User %s not found", user_id)
-            return {
+            result = {
                 "status": "error",
                 "issue_id": issue_id,
                 "error": "User not found",
             }
+            broadcast_task_update(self.request.id, result)
+            return result
 
         # Call AI provider to decompose issue
         issue_title = issue.name or "Untitled Issue"
@@ -129,12 +134,14 @@ def decompose_issue_task(
             issue_id,
         )
 
-        return {
-            "status": "success",
+        result = {
+            "status": "SUCCESS",
             "issue_id": issue_id,
             "created_count": len(created_tasks),
             "task_ids": [str(t.id) for t in created_tasks],
         }
+        broadcast_task_update(self.request.id, result)
+        return result
 
     except Exception as exc:
         # Log unexpected errors
@@ -142,11 +149,13 @@ def decompose_issue_task(
             "decompose_issue_task: Unexpected error for issue %s",
             issue_id,
         )
-        return {
+        result = {
             "status": "error",
             "issue_id": issue_id,
             "error": str(exc),
         }
+        broadcast_task_update(self.request.id, result)
+        return result
 
 
 @shared_task(bind=True, max_retries=MAX_RETRIES, default_retry_delay=RETRY_DELAY_SECONDS)
@@ -185,20 +194,24 @@ def process_brain_dump_task(
             project = Project.objects.get(pk=project_id, workspace_id=workspace_id)
         except Project.DoesNotExist:
             logger.error("process_brain_dump_task: Project %s not found", project_id)
-            return {
+            result = {
                 "status": "error",
                 "error": "Project not found",
             }
+            broadcast_task_update(self.request.id, result)
+            return result
 
         # Get user
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
             logger.error("process_brain_dump_task: User %s not found", user_id)
-            return {
+            result = {
                 "status": "error",
                 "error": "User not found",
             }
+            broadcast_task_update(self.request.id, result)
+            return result
 
         # Call AI provider to extract action items
         try:
@@ -236,18 +249,22 @@ def process_brain_dump_task(
             len(created_issues),
         )
 
-        return {
-            "status": "success",
+        result = {
+            "status": "SUCCESS",
             "extracted_count": len(extracted_items),
             "created_issues_count": len(created_issues),
             "issue_ids": [str(i.id) for i in created_issues],
             "extracted_items": extracted_items,
         }
+        broadcast_task_update(self.request.id, result)
+        return result
 
     except Exception as exc:
         # Log unexpected errors
         logger.exception("process_brain_dump_task: Unexpected error")
-        return {
+        result = {
             "status": "error",
             "error": str(exc),
         }
+        broadcast_task_update(self.request.id, result)
+        return result
