@@ -107,11 +107,16 @@ export function useDragonState(workspaceSlug: string, projectId: string) {
     }
   }, [workspaceSlug, projectId]);
 
-  // Poll every 60 s to catch new achievements
+  // Poll every 60 s to catch new achievements.
+  // Initial call is deferred via setTimeout(0) so that setState is not invoked
+  // synchronously inside the effect body (satisfies react-hooks/set-state-in-effect).
   useEffect(() => {
-    refresh();
-    const id = setInterval(refresh, 60_000);
-    return () => clearInterval(id);
+    const initial = setTimeout(() => void refresh(), 0);
+    const id = setInterval(() => void refresh(), 60_000);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(id);
+    };
   }, [refresh]);
 
   return { ...state, refresh };

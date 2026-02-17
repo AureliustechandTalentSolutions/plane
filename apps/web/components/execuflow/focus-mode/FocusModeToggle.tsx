@@ -44,13 +44,15 @@ export const FocusModeToggle: React.FC<FocusModeToggleProps> = ({ workspaceSlug,
     <div className={`${styles.pill} ${isActive ? styles.active : ""}`}>
       <button
         className={styles.toggle}
-        onClick={handleToggle}
+        onClick={() => void handleToggle()}
         disabled={loading}
         aria-pressed={isActive}
         aria-label={isActive ? t("execuflow.focus_mode.end_session") : t("execuflow.focus_mode.start_session")}
       >
         <span className={styles.icon}>{isActive ? "⏸" : "▶"}</span>
-        <span className={styles.label}>{isActive ? t("execuflow.focus_mode.focus_on") : t("execuflow.focus_mode.focus_off")}</span>
+        <span className={styles.label}>
+          {isActive ? t("execuflow.focus_mode.focus_on") : t("execuflow.focus_mode.focus_off")}
+        </span>
       </button>
 
       {isActive && (
@@ -66,7 +68,11 @@ export const FocusModeToggle: React.FC<FocusModeToggleProps> = ({ workspaceSlug,
               onChange={(e) => setInterruptNote(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleInterrupt()}
             />
-            <button className={styles.interruptBtn} onClick={handleInterrupt} aria-label={t("execuflow.interrupt_queue.queued_items", { count: 1 })}>
+            <button
+              className={styles.interruptBtn}
+              onClick={handleInterrupt}
+              aria-label={t("execuflow.interrupt_queue.queued_items", { count: 1 })}
+            >
               +
             </button>
           </div>

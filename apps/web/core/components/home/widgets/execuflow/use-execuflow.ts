@@ -151,6 +151,7 @@ export function useExecuFlow(_options: UseExecuFlowOptions): UseExecuFlowReturn 
             title: "Focus session started",
             message: `${apiPlannedDuration}-minute ${apiSessionType.replace("_", " ")} session synced.`,
           });
+          return undefined;
         })
         .catch((err: unknown) => {
           const message = err instanceof Error ? err.message : "Session saved locally; will sync when online.";
@@ -201,6 +202,7 @@ export function useExecuFlow(_options: UseExecuFlowOptions): UseExecuFlowReturn 
           title: "Session complete",
           message: `Great work! You've completed ${newCount} session${newCount !== 1 ? "s" : ""} today.`,
         });
+        return undefined;
       })
       .catch((err: unknown) => {
         // If there is no active API session (e.g. started offline), the error is expected.

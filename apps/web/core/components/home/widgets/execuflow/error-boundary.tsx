@@ -119,9 +119,7 @@ export class ExecuFlowErrorBoundary extends Component<Props, State> {
           {/* Header */}
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" aria-hidden="true" />
-            <span className="text-13 font-medium text-red-700">
-              {this.props.widgetName} encountered an error
-            </span>
+            <span className="text-13 font-medium text-red-700">{this.props.widgetName} encountered an error</span>
           </div>
 
           {/* Retry progress indicator */}
@@ -134,21 +132,18 @@ export class ExecuFlowErrorBoundary extends Component<Props, State> {
           {/* Persisted error message after all retries are exhausted */}
           {retriesExhausted && (
             <p className="text-12 text-red-600 mb-2" aria-live="assertive">
-              Error persists after {MAX_RETRIES} attempts. Please refresh the page or contact
-              support.
+              Error persists after {MAX_RETRIES} attempts. Please refresh the page or contact support.
             </p>
           )}
 
           {/* Retry button */}
           {!retriesExhausted && (
             <button
-              onClick={this.handleRetry}
+              onClick={() => void this.handleRetry()}
               disabled={isRetrying}
               aria-disabled={isRetrying ? "true" : "false"}
               aria-label={
-                isRetrying
-                  ? "Retrying, please wait"
-                  : `Try again (attempt ${retryCount + 1} of ${MAX_RETRIES})`
+                isRetrying ? "Retrying, please wait" : `Try again (attempt ${retryCount + 1} of ${MAX_RETRIES})`
               }
               className="flex items-center gap-1 min-h-[44px] px-3 py-2 text-12 text-red-600 hover:text-red-800 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:cursor-not-allowed disabled:opacity-60"
             >

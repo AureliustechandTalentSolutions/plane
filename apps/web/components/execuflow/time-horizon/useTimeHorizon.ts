@@ -2,7 +2,8 @@
 // All values derived from API responses; zero hardcoded defaults.
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ExecuFlowService, type IFocusSession } from "@plane/services";
+import { ExecuFlowService } from "@plane/services";
+import type { IFocusSession } from "@plane/services";
 
 const API_BASE_URL = "/api";
 const service = new ExecuFlowService(API_BASE_URL);
@@ -112,8 +113,11 @@ export function useTimeHorizon(workspaceSlug: string, projectId: string) {
     };
   }, [state.isRunning]);
 
+  // Deferred initial fetch so setState is not called synchronously inside the
+  // effect body (satisfies react-hooks/set-state-in-effect).
   useEffect(() => {
-    refresh();
+    const initial = setTimeout(() => void refresh(), 0);
+    return () => clearTimeout(initial);
   }, [refresh]);
 
   return { ...state, refresh };

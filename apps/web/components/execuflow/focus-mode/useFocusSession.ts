@@ -2,7 +2,8 @@
 // All values from the ExecuFlowService API.
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { ExecuFlowService, type IFocusSession } from "@plane/services";
+import { ExecuFlowService } from "@plane/services";
+import type { IFocusSession } from "@plane/services";
 
 const API_BASE_URL = "/api";
 const service = new ExecuFlowService(API_BASE_URL);
