@@ -1,0 +1,96 @@
+{
+    "name": "Plane Development",
+    "dockerComposeFile": "docker-compose.devcontainer.yml",
+    "service": "app",
+    "workspaceFolder": "/workspace",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "forwardPorts": [
+        3000,
+        3001,
+        3002,
+        3100,
+        8000,
+        5432,
+        6379,
+        9000,
+        9090,
+        15672
+    ],
+    "portsAttributes": {
+        "3000": {
+            "label": "Web App",
+            "onAutoForward": "notify"
+        },
+        "3001": {
+            "label": "Admin App",
+            "onAutoForward": "notify"
+        },
+        "3002": {
+            "label": "Space App",
+            "onAutoForward": "notify"
+        },
+        "3100": {
+            "label": "Live Server",
+            "onAutoForward": "notify"
+        },
+        "8000": {
+            "label": "API Server",
+            "onAutoForward": "notify"
+        },
+        "5432": {
+            "label": "PostgreSQL",
+            "onAutoForward": "silent"
+        },
+        "6379": {
+            "label": "Redis/Valkey",
+            "onAutoForward": "silent"
+        },
+        "9000": {
+            "label": "MinIO S3",
+            "onAutoForward": "silent"
+        },
+        "9090": {
+            "label": "MinIO Console",
+            "onAutoForward": "silent"
+        },
+        "15672": {
+            "label": "RabbitMQ Management",
+            "onAutoForward": "silent"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "ms-python.python",
+                "charliermarsh.ruff",
+                "ms-azuretools.vscode-docker",
+                "bradlc.vscode-tailwindcss",
+                "vitest.explorer",
+                "ms-playwright.playwright",
+                "GitHub.copilot",
+                "eamodio.gitlens"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "typescript.preferences.importModuleSpecifier": "non-relative",
+                "python.defaultInterpreterPath": "/usr/bin/python3",
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll.ruff": "explicit",
+                        "source.organizeImports.ruff": "explicit"
+                    }
+                }
+            }
+        }
+    },
+    "postCreateCommand": "bash -c 'pnpm install && cd apps/api && pip install --break-system-packages -r requirements/test.txt'",
+    "postStartCommand": "echo '✅ Plane devcontainer ready. Services: Postgres :5432 | Redis :6379 | RabbitMQ :5672 | MinIO :9000'",
+    "remoteUser": "node"
+}

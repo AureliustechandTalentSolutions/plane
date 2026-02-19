@@ -257,6 +257,120 @@ SPECTACULAR_SETTINGS = {
                 "*Use Cases:* Bug tracking, task management, feature development, sprint planning."
             ),
         },
+        # ExecuFlow AI - Neurodivergent-First Executive Function Support
+        {
+            "name": "ExecuFlow Micro-Tasks",
+            "description": (
+                "**Energy-Aware Micro-Task Management**\n\n"
+                "Decompose issues into atomic, energy-tagged micro-tasks that match the user's "
+                "current capacity. Designed to eliminate the Wall of Awful by breaking work into "
+                "pieces small enough to start without resistance.\n\n"
+                "*Key Features:*\n"
+                "- Create and manage energy-tagged micro-tasks (low/medium/high)\n"
+                "- Filter tasks by energy level and estimated duration\n"
+                "- LLM-powered issue decomposition into micro-steps\n"
+                "- Sort ordering for manual prioritization\n\n"
+                "*Design Axiom:* Reduce to Binary -- eliminate choice paralysis."
+            ),
+        },
+        {
+            "name": "ExecuFlow Brain Dump",
+            "description": (
+                "**Raw Thought Capture & Processing**\n\n"
+                "Capture unstructured thoughts from voice-to-text or direct input, then "
+                "optionally extract action items and create issues. Processing is asynchronous "
+                "and provider-agnostic.\n\n"
+                "*Key Features:*\n"
+                "- Accept raw text from voice, typing, or paste\n"
+                "- Async AI-powered extraction of action items\n"
+                "- Optional auto-creation of issues from extracted actions\n\n"
+                "*Design Axiom:* Externalize Everything -- compensate for working-memory deficits."
+            ),
+        },
+        {
+            "name": "ExecuFlow Focus Sessions",
+            "description": (
+                "**Timed Focus Blocks with Body-Double AI**\n\n"
+                "Start pomodoro, deep work, body double, or free flow sessions with interrupt "
+                "queuing and mood tracking. The AI companion announces its own parallel task "
+                "to create a body-doubling effect.\n\n"
+                "*Key Features:*\n"
+                "- Multiple session types: pomodoro, deep_work, body_double, free_flow\n"
+                "- Interrupt queue holds notifications until session ends\n"
+                "- Pre/post mood tracking (1-5 scale)\n"
+                "- Computed actual duration on session end\n\n"
+                "*Design Axiom:* Body-Double Always -- AI companion is always present."
+            ),
+        },
+        {
+            "name": "ExecuFlow Context Snapshots",
+            "description": (
+                "**Workspace State Time-Machine**\n\n"
+                "Save and restore complete workspace context when interrupted or switching tasks. "
+                "Captures open issues, scroll positions, active filters, draft text, and mental notes.\n\n"
+                "*Key Features:*\n"
+                "- Manual and automatic snapshot triggers\n"
+                "- Full workspace state serialization\n"
+                "- Snapshot restoration for seamless context switching\n"
+                "- Trigger types: manual, auto_interrupt, auto_switch, auto_timer, session_end\n\n"
+                "*Design Axiom:* Externalize Everything -- task-switching is catastrophically expensive for ADHD."
+            ),
+        },
+        {
+            "name": "ExecuFlow Dopamine Menu",
+            "description": (
+                "**Reward System for Momentum**\n\n"
+                "A categorized menu of user-selected rewards using a meal metaphor: "
+                "appetizer (< 5 min), side (5-15 min), entree (15-30 min), dessert (30+ min). "
+                "Cooldown enforcement prevents over-rewarding.\n\n"
+                "*Key Features:*\n"
+                "- Categorized reward items with cooldown timers\n"
+                "- Claim rewards after completing tasks\n"
+                "- Usage tracking and cooldown enforcement\n\n"
+                "*Design Axiom:* Dopamine by Design -- reward early and often."
+            ),
+        },
+        {
+            "name": "ExecuFlow Achievements",
+            "description": (
+                "**Milestone Celebrations & Gamification**\n\n"
+                "Unlock achievements for celebrating personal progress. Achievements are "
+                "encouraging, never competitive -- celebrating milestones, not ranking users.\n\n"
+                "*Key Features:*\n"
+                "- Browse available achievements with XP values\n"
+                "- View personally earned achievements\n"
+                "- Secret achievements for surprise dopamine\n"
+                "- Categories: momentum, consistency, mastery, exploration, collaboration\n\n"
+                "*Design Axiom:* No-Shame Protocol -- never punish, always encourage."
+            ),
+        },
+        {
+            "name": "ExecuFlow Streaks",
+            "description": (
+                "**No-Shame Consistency Tracking**\n\n"
+                "Track consistency patterns where streaks pause but never break. "
+                "Grace periods prevent accidental loss, and paused streaks show 'welcome back' "
+                "messaging instead of shame.\n\n"
+                "*Key Features:*\n"
+                "- Record, pause, and resume streaks\n"
+                "- Streak types: daily_login, focus_session, task_completion, brain_dump, review\n"
+                "- Personal best tracking (longest_count never resets)\n"
+                "- Configurable grace period before auto-pause\n\n"
+                "*Design Axiom:* No-Shame Protocol -- streaks pause, they never break."
+            ),
+        },
+        {
+            "name": "ExecuFlow Task Status",
+            "description": (
+                "**Async Task Status Polling**\n\n"
+                "Check the status of asynchronous ExecuFlow operations like brain dump "
+                "processing and issue decomposition. Returns Celery task state and results.\n\n"
+                "*Key Features:*\n"
+                "- Poll task status by task_id\n"
+                "- Returns PENDING, SUCCESS, or FAILURE states\n"
+                "- Includes result data on completion or error details on failure"
+            ),
+        },
     ],
     # ========================================================================
     # Security & Authentication

@@ -8,7 +8,14 @@ import type { TLogoProps } from "./common";
 import type { TIssuePriorities } from "./issues";
 
 export type TRecentActivityFilterKeys = "all item" | "issue" | "page" | "project" | "workspace_page";
-export type THomeWidgetKeys = "quick_links" | "recents" | "my_stickies" | "quick_tutorial" | "new_at_plane";
+export type THomeWidgetKeys =
+  | "quick_links"
+  | "recents"
+  | "my_stickies"
+  | "quick_tutorial"
+  | "new_at_plane"
+  | "execuflow_focus"
+  | "execuflow_dragon";
 
 export type THomeWidgetProps = {
   workspaceSlug: string;
@@ -60,7 +67,7 @@ export type TLinkEditableFields = {
 export type TLink = TLinkEditableFields & {
   created_by_id: string;
   id: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   workspace_slug: string;
 
   //need

@@ -23,9 +23,11 @@ import { HomePageHeader } from "@/plane-web/components/home/header";
 // local imports
 import { StickiesWidget } from "../stickies/widget";
 import { HomeLoader, NoProjectsEmptyState, RecentActivityWidget } from "./widgets";
+import { ExecuFlowFocusWidget, ExecuFlowDragonWidget, ExecuFlowErrorBoundary } from "./widgets/execuflow";
 import { DashboardQuickLinks } from "./widgets/links";
 import { ManageWidgetsModal } from "./widgets/manage";
 
+// eslint-disable-next-line react-refresh/only-export-components -- Widget config object required alongside components
 export const HOME_WIDGETS_LIST: {
   [key in THomeWidgetKeys]: {
     component: React.FC<THomeWidgetProps> | null;
@@ -57,6 +59,16 @@ export const HOME_WIDGETS_LIST: {
     component: null,
     fullWidth: false,
     title: "home.quick_tutorial.title",
+  },
+  execuflow_focus: {
+    component: ExecuFlowFocusWidget,
+    fullWidth: false,
+    title: "ExecuFlow Focus Timer",
+  },
+  execuflow_dragon: {
+    component: ExecuFlowDragonWidget,
+    fullWidth: false,
+    title: "ExecuFlow Energy Tracker",
   },
 };
 
@@ -95,11 +107,21 @@ export const DashboardWidgets = observer(function DashboardWidgets() {
         <div className="flex flex-col">
           {orderedWidgets.map((key) => {
             const WidgetComponent = HOME_WIDGETS_LIST[key]?.component;
+            const widgetTitle = HOME_WIDGETS_LIST[key]?.title;
             const isEnabled = widgetsMap[key]?.is_enabled;
+            const isExecuFlowWidget = key.startsWith("execuflow_");
+
             if (!WidgetComponent || !isEnabled) return null;
+
             return (
               <div key={key} className="py-4">
-                <WidgetComponent workspaceSlug={workspaceSlug.toString()} />
+                {isExecuFlowWidget ? (
+                  <ExecuFlowErrorBoundary widgetName={widgetTitle}>
+                    <WidgetComponent workspaceSlug={workspaceSlug.toString()} />
+                  </ExecuFlowErrorBoundary>
+                ) : (
+                  <WidgetComponent workspaceSlug={workspaceSlug.toString()} />
+                )}
               </div>
             );
           })}

@@ -8,15 +8,13 @@ from .asset import FileAsset
 from .base import BaseModel
 from .cycle import Cycle, CycleIssue, CycleUserProperties
 from .deploy_board import DeployBoard
-from .draft import (
-    DraftIssue,
-    DraftIssueAssignee,
-    DraftIssueLabel,
-    DraftIssueModule,
-    DraftIssueCycle,
-)
+from .description import Description, DescriptionVersion
+from .device import Device, DeviceSession
+from .draft import DraftIssue, DraftIssueAssignee, DraftIssueCycle, DraftIssueLabel, DraftIssueModule
 from .estimate import Estimate, EstimatePoint
+from .execuflow import Achievement, ContextSnapshot, DopamineMenu, FocusSession, MicroTask, Streak, UserAchievement
 from .exporter import ExporterHistory
+from .favorite import UserFavorite
 from .importer import Importer
 from .intake import Intake, IntakeIssue
 from .integration import (
@@ -35,6 +33,7 @@ from .issue import (
     IssueAssignee,
     IssueBlocker,
     IssueComment,
+    IssueDescriptionVersion,
     IssueLabel,
     IssueLink,
     IssueMention,
@@ -42,13 +41,14 @@ from .issue import (
     IssueRelation,
     IssueSequence,
     IssueSubscriber,
-    IssueVote,
     IssueVersion,
-    IssueDescriptionVersion,
+    IssueVote,
 )
+from .issue_type import IssueType
+from .label import Label
 from .module import Module, ModuleIssue, ModuleLink, ModuleMember, ModuleUserProperties
 from .notification import EmailNotificationLog, Notification, UserNotificationPreference
-from .page import Page, PageLabel, PageLog, ProjectPage, PageVersion
+from .page import Page, PageLabel, PageLog, PageVersion, ProjectPage
 from .project import (
     Project,
     ProjectBaseModel,
@@ -59,34 +59,22 @@ from .project import (
     ProjectPublicMember,
     ProjectUserProperty,
 )
+from .recent_visit import UserRecentVisit
 from .session import Session
 from .social_connection import SocialLoginConnection
-from .state import State, StateGroup, DEFAULT_STATES
-from .user import Account, Profile, User, BotTypeEnum
+from .state import DEFAULT_STATES, State, StateGroup
+from .sticky import Sticky
+from .user import Account, BotTypeEnum, Profile, User
 from .view import IssueView
 from .webhook import Webhook, WebhookLog
 from .workspace import (
     Workspace,
     WorkspaceBaseModel,
+    WorkspaceHomePreference,
     WorkspaceMember,
     WorkspaceMemberInvite,
     WorkspaceTheme,
-    WorkspaceUserProperties,
     WorkspaceUserLink,
-    WorkspaceHomePreference,
     WorkspaceUserPreference,
+    WorkspaceUserProperties,
 )
-
-from .favorite import UserFavorite
-
-from .issue_type import IssueType
-
-from .recent_visit import UserRecentVisit
-
-from .label import Label
-
-from .device import Device, DeviceSession
-
-from .sticky import Sticky
-
-from .description import Description, DescriptionVersion
