@@ -15,7 +15,8 @@ INSTALLED_APPS.append(  # noqa
     "plane.tests"
 )
 
-# Use in-memory channel layer for WebSocket tests
+# Use in-memory channel layer for WebSocket tests (no Redis required)
+# SOURCE: feature/nexus-phase2-smart-scaffold — adapted for local V&V
 CHANNEL_LAYERS = {  # noqa: F811
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",

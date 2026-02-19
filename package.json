@@ -17,6 +17,11 @@
     "check:lint": "turbo run check:lint",
     "check:format": "turbo run check:format",
     "check:types": "turbo run check:types",
+    "test": "turbo run test",
+    "test:watch": "vitest --workspace vitest.workspace.ts",
+    "test:coverage": "turbo run test -- --coverage",
+    "test:e2e": "cd e2e && npx playwright test",
+    "test:e2e:ui": "cd e2e && npx playwright test --ui",
     "prepare": "husky"
   },
   "devDependencies": {
